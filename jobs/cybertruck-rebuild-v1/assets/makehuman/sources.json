@@ -1,0 +1,71 @@
+{
+  "base": "https://raw.githubusercontent.com/makehumancommunity/makehuman/master/makehuman/data/3dobjs/base.obj",
+  "targets": [
+    {
+      "file": "caucasian-male-baby.target",
+      "url": "https://raw.githubusercontent.com/makehumancommunity/makehuman/master/makehuman/data/targets/macrodetails/caucasian-male-baby.target",
+      "bytes": 463026
+    },
+    {
+      "file": "caucasian-male-young.target",
+      "url": "https://raw.githubusercontent.com/makehumancommunity/makehuman/master/makehuman/data/targets/macrodetails/caucasian-male-young.target",
+      "bytes": 396479
+    },
+    {
+      "file": "universal-male-young-maxmuscle-averageweight.target",
+      "url": "https://raw.githubusercontent.com/makehumancommunity/makehuman/master/makehuman/data/targets/macrodetails/universal-male-young-maxmuscle-averageweight.target",
+      "bytes": 147110
+    },
+    {
+      "file": "universal-male-young-maxmuscle-minweight.target",
+      "url": "https://raw.githubusercontent.com/makehumancommunity/makehuman/master/makehuman/data/targets/macrodetails/universal-male-young-maxmuscle-minweight.target",
+      "bytes": 150179
+    },
+    {
+      "file": "universal-male-baby-averagemuscle-averageweight.target",
+      "url": "https://raw.githubusercontent.com/makehumancommunity/makehuman/master/makehuman/data/targets/macrodetails/universal-male-baby-averagemuscle-averageweight.target",
+      "bytes": 604
+    },
+    {
+      "file": "universal-male-baby-averagemuscle-maxweight.target",
+      "url": "https://raw.githubusercontent.com/makehumancommunity/makehuman/master/makehuman/data/targets/macrodetails/universal-male-baby-averagemuscle-maxweight.target",
+      "bytes": 79455
+    },
+    {
+      "file": "universal-male-baby-averagemuscle-minweight.target",
+      "url": "https://raw.githubusercontent.com/makehumancommunity/makehuman/master/makehuman/data/targets/macrodetails/universal-male-baby-averagemuscle-minweight.target",
+      "bytes": 99829
+    },
+    {
+      "file": "universal-male-baby-maxmuscle-averageweight.target",
+      "url": "https://raw.githubusercontent.com/makehumancommunity/makehuman/master/makehuman/data/targets/macrodetails/universal-male-baby-maxmuscle-averageweight.target",
+      "bytes": 106590
+    },
+    {
+      "file": "universal-male-baby-maxmuscle-maxweight.target",
+      "url": "https://raw.githubusercontent.com/makehumancommunity/makehuman/master/makehuman/data/targets/macrodetails/universal-male-baby-maxmuscle-maxweight.target",
+      "bytes": 107972
+    },
+    {
+      "file": "universal-male-baby-maxmuscle-minweight.target",
+      "url": "https://raw.githubusercontent.com/makehumancommunity/makehuman/master/makehuman/data/targets/macrodetails/universal-male-baby-maxmuscle-minweight.target",
+      "bytes": 107906
+    },
+    {
+      "file": "universal-male-baby-minmuscle-averageweight.target",
+      "url": "https://raw.githubusercontent.com/makehumancommunity/makehuman/master/makehuman/data/targets/macrodetails/universal-male-baby-minmuscle-averageweight.target",
+      "bytes": 45240
+    },
+    {
+      "file": "universal-male-baby-minmuscle-maxweight.target",
+      "url": "https://raw.githubusercontent.com/makehumancommunity/makehuman/master/makehuman/data/targets/macrodetails/universal-male-baby-minmuscle-maxweight.target",
+      "bytes": 131641
+    },
+    {
+      "file": "universal-male-baby-minmuscle-minweight.target",
+      "url": "https://raw.githubusercontent.com/makehumancommunity/makehuman/master/makehuman/data/targets/macrodetails/universal-male-baby-minmuscle-minweight.target",
+      "bytes": 224823
+    }
+  ],
+  "license": "CC0 asset release; see base.obj header and LICENSE.ASSETS.md"
+}

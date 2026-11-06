@@ -1,0 +1,409 @@
+<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Social Studio · Kullanım Kılavuzu</title><style>
+:root{color-scheme:dark;--bg:#111813;--panel:#1c281e;--ink:#f1f5e9;--lime:#c6ff63;--line:#3c4d36}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.72 'Segoe UI',sans-serif}
+a{color:var(--lime);text-decoration-thickness:1px;text-underline-offset:4px}header{position:sticky;top:0;background:#111813f5;
+border-bottom:1px solid var(--line);padding:16px 5vw;display:flex;align-items:center;gap:24px;z-index:2}
+header b{font-size:19px;letter-spacing:-.5px;color:var(--lime)}input{margin-left:auto;background:var(--panel);color:var(--ink);
+border:1px solid var(--line);padding:10px 16px;border-radius:8px;width:min(340px,50vw);font:inherit}
+.layout{display:grid;grid-template-columns:250px minmax(0,950px);max-width:1350px;margin:auto;gap:50px;padding:40px 30px 100px}
+nav{position:sticky;top:95px;height:calc(100vh - 120px);overflow:auto;font-size:14px}nav a{display:block;color:#becab7;padding:6px 0;text-decoration:none}
+nav a:hover{color:var(--lime)}article{min-width:0}h1{font-size:clamp(38px,5vw,68px);letter-spacing:-2px;line-height:1.1;margin:20px 0 35px}
+h2{font-size:30px;letter-spacing:-.7px;line-height:1.25;margin-top:70px;scroll-margin-top:100px}strong{color:#e7f8d4}
+p{max-width:850px}table{border-collapse:collapse;width:100%;font-size:14px;display:block;overflow:auto}td,th{border-bottom:1px solid var(--line);padding:13px 15px;text-align:left;vertical-align:top}th{background:var(--panel);color:var(--lime)}
+pre{background:#080d09;border:1px solid var(--line);border-radius:12px;padding:28px 18px 18px;overflow:auto;position:relative;font-size:14px;line-height:1.65}
+code{font-family:Consolas,monospace;color:#d9f0c0;overflow-wrap:anywhere}p code,td code{background:var(--panel);border-radius:4px;padding:2px 5px}
+pre code{white-space:pre-wrap}video{display:block;width:min(100%,360px);border:1px solid var(--line);border-radius:12px;background:#080d09}
+button.copy{position:absolute;right:8px;top:6px;background:var(--panel);color:var(--lime);border:1px solid var(--line);border-radius:6px;padding:4px 9px;cursor:pointer}
+.meta{color:#a8b79e;font-size:13px;margin-bottom:25px}.hidden{display:none!important}mark{background:var(--lime);color:#111813}
+@media(max-width:950px){.layout{grid-template-columns:1fr;padding:25px 18px 80px}nav{position:static;height:auto;max-height:220px;border-bottom:1px solid var(--line);padding-bottom:20px}h2{margin-top:45px}}
+@media(max-width:600px){header{flex-wrap:wrap;gap:12px;padding:13px 18px}header b{white-space:nowrap;font-size:17px}header .meta{display:none}input{width:100%;margin:0;font-size:15px;padding:8px 12px}nav{max-height:160px}h1{font-size:36px}}
+@media print{header,nav,button{display:none}.layout{display:block;padding:0}body{background:white;color:black}code,a,strong{color:black}pre,th{background:#f3f5ef}h2{break-after:avoid}pre,table{break-inside:avoid}}
+</style></head><body><header><b>SOCIAL STUDIO ↗</b><span class="meta">YEREL ÜRETİM KILAVUZU</span><input id="search" type="search" aria-label="Kılavuzda ara" placeholder="Komut veya konu ara..."></header>
+<div class="layout"><nav id="toc" aria-label="İçindekiler"></nav><article id="manual"><h1>Social Studio · Kullanım kılavuzu</h1>
+<p>Kurulum: <strong>5 Kasım 2026</strong>. Bilgisayarınızdaki Codex, Claude Code ve terminal için ortak sosyal medya üretim sistemi.</p>
+<p><strong>Güncel öncelik:</strong> insanların Claude Code ile yaptığı belirli videoları referansa sadık
+biçimde yeniden oluşturmak. Claude Code'da <code>/videoyu-kopyala</code> komutunun arkasına videonun
+yolunu veya bağlantısını yazın. Önceki tanıtım demosu kullanıcı tarafından beğenilmedi;
+onaylı stil ya da referans eşleştirme başarısının kanıtı değildir. Bu aşamada Postiz ve içerik
+takvimi bağlantıları beklenmez; ilk gerekli girdi, yeniden yapılacak gerçek videodur.</p>
+<h2>Hemen başla</h2>
+<p>Codex'te yeni bir mesajda videoyu ekleyip şunu yazın:</p>
+<pre><code class="language-text">$social-rebuild Bu videoyu aynı ölçü, ritim ve görsel dille düzenlenebilir kod olarak yeniden kur. MP4'ü üret, referansla karşılaştır ve görünen farkları düzelt.
+</code></pre>
+<p>Claude Code içinde aynı işlem:</p>
+<pre><code class="language-text">/social-rebuild C:/Videolar/referans.mp4 — aynı ölçü, ritim ve görsel dille yeniden kur; bitmiş MP4 ve düzenlenebilir proje ver.
+</code></pre>
+<p>Terminalden doğrudan referansla bir Codex oturumu açmak için:</p>
+<pre><code class="language-powershell">social launch codex --source 'C:/Videolar/referans.mp4'
+</code></pre>
+<p>Claude Code için:</p>
+<pre><code class="language-powershell">social launch claude --source 'C:/Videolar/referans.mp4'
+</code></pre>
+<p>Bu iki komut yerel asistanı normal giriş ve izin ayarlarıyla açar. Kullanıcı hesabınızla çalışır;
+ayrı bir API anahtarı gerekmez. Normal Codex/Claude kullanım kotanız geçerlidir.</p>
+<h2>Komutları nerede yazacağım?</h2>
+<p><strong>Codex sohbeti:</strong> <code>$social-rebuild</code> gibi beceri adını yazın. <code>/skills</code> menüsünden de seçebilirsiniz.
+Codex'in özel beceriler için kullandığı çağrı biçimi <code>$isim</code>dir; Claude'daki her <code>/isim</code>
+kısayolunun Codex'te aynı şekilde çalıştığını varsaymayın.</p>
+<p><strong>Claude Code:</strong> <code>/social-rebuild</code> gibi slash komutlarını kullanın. Bunlar bilgisayardaki Claude Code
+oturumları içindir. claude.ai web sitesi veya uzak Cowork'a otomatik yüklenmez.</p>
+<p><strong>PowerShell / CMD:</strong> <code>social analyze ...</code> gibi terminal komutlarını yazın. Sohbetteki <code>$social-...</code>
+ifadelerini PowerShell'e yapıştırmayın; PowerShell bunları değişken sanır.</p>
+<p>Beceriler yeni oturumda/yeni turda görünür. Menü yenilenmezse Codex veya Claude Code'u yeniden açın.</p>
+<h2>Codex ve Claude hesap girişi</h2>
+<p>Son kontrolde <strong>Codex CLI ChatGPT hesabıyla</strong>, <strong>Claude Code da Claude aboneliğiyle</strong> giriş
+yapmış durumda. İki uygulamanın beceri dosyaları kuruldu. Oturum durumunu <code>claude auth status</code>
+ve <code>codex login status</code> ile kontrol edebilirsiniz. Claude Code'da <a href="https://code.claude.com/docs/en/authentication">abonelik veya API/kurumsal giriş</a>
+kullanılabilir; tarayıcıdaki hesabınız terminal oturumuna otomatik yansımayabilir.</p>
+<p>Gerekirse aboneliğinizle yeniden giriş:</p>
+<pre><code class="language-powershell">claude auth login
+claude auth status
+</code></pre>
+<p>Girişten sonra örneğin:</p>
+<pre><code class="language-powershell">social launch claude --prompt 'ProAsistan için onaylı marka stilinde 20 saniyelik Reels oluştur.'
+</code></pre>
+<p>API anahtarı kullanacaksanız anahtarı sohbete veya komut geçmişine yazmak yerine bu terminal
+oturumuna maskeli girişle aktarabilirsiniz:</p>
+<pre><code class="language-powershell">$env:ANTHROPIC_API_KEY = [System.Net.NetworkCredential]::new('', (Read-Host 'Anthropic API anahtarınız' -AsSecureString)).Password
+social launch claude
+</code></pre>
+<p>Bu yöntem API kullanımını kendi API hesabınızdan ücretlendirir. Anahtar yalnız bu terminal
+oturumuna eklenir. Claude ilk kullanımda bu anahtarı kullanmayı onaylamanızı isteyebilir.
+Codex oturumunu gerektiğinde <code>codex login status</code> ile kontrol edebilirsiniz.</p>
+<h2>Sohbet komutları</h2>
+<p>Tablodaki Claude sütununda <code>/</code>, Codex sütununda <code>$</code> kullanılır. Arkasına doğal Türkçe talebinizi ekleyin.</p>
+<table>
+<thead>
+<tr>
+<th>Yapılacak iş</th>
+<th>Codex</th>
+<th>Claude Code</th>
+<th>Çıktı</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Genel yönlendirme</td>
+<td><code>$social</code></td>
+<td><code>/social</code></td>
+<td>Talebe uygun iş akışı</td>
+</tr>
+<tr>
+<td>Referans inceleme</td>
+<td><code>$social-analyze</code></td>
+<td><code>/social-analyze</code></td>
+<td>Sahne, metin, ritim, hareket ve ses çözümlemesi</td>
+</tr>
+<tr>
+<td>Videoyu yeniden kurma</td>
+<td><code>$social-rebuild</code></td>
+<td><code>/social-rebuild</code></td>
+<td>Düzenlenebilir kaynak, MP4, fark raporu</td>
+</tr>
+<tr>
+<td>Konudan video oluşturma</td>
+<td><code>$social-create</code></td>
+<td><code>/social-create</code></td>
+<td>Senaryo, sahneler, ses isteniyorsa seslendirme, bitmiş video</td>
+</tr>
+<tr>
+<td>İçerik takvimi</td>
+<td><code>$social-plan</code></td>
+<td><code>/social-plan</code></td>
+<td>Doldurulmuş kanca, senaryo, açıklama ve CTA</td>
+</tr>
+<tr>
+<td>Seslendirme</td>
+<td><code>$social-voice</code></td>
+<td><code>/social-voice</code></td>
+<td>Türkçe ses dosyası ve zamanlama</td>
+</tr>
+<tr>
+<td>Efekt ve miks</td>
+<td><code>$social-sfx</code></td>
+<td><code>/social-sfx</code></td>
+<td>Harekete yerleştirilmiş efektler ve miks kontrolü</td>
+</tr>
+<tr>
+<td>Video kontrolü</td>
+<td><code>$social-check</code></td>
+<td><code>/social-check</code></td>
+<td>Zaman kodlu sorunlar, teknik/ses ölçümleri</td>
+</tr>
+<tr>
+<td>Performans analizi</td>
+<td><code>$social-analytics</code></td>
+<td><code>/social-analytics</code></td>
+<td>Gerçek veriden içerik önerileri</td>
+</tr>
+<tr>
+<td>Paylaşım / zamanlama</td>
+<td><code>$social-publish</code></td>
+<td><code>/social-publish</code></td>
+<td>Postiz taslağı veya istenen yayın/zamanlama</td>
+</tr>
+<tr>
+<td>Gelen video klasörü</td>
+<td><code>$social-inbox</code></td>
+<td><code>/social-inbox</code></td>
+<td>Gelen referansın analizi veya istenirse yeniden üretimi</td>
+</tr>
+</tbody>
+</table>
+<h2>Hazır kullanım cümleleri</h2>
+<pre><code class="language-text">$social-create ProAsistan için güzellik salonlarına yönelik 20 saniyelik bir Reels yap. Onaylı beyaz-mavi stili ve büyük yazıları kullan. Türkçe seslendir, seçili hareketlere hafif efekt ekle, bitmiş MP4 ver.
+</code></pre>
+<pre><code class="language-text">$social-rebuild Bu referansın sahne geçişlerini ve yazı hareketlerini koru; metinleri Bursa VIP Acil Kurye için değiştir. Önceki onaylı marka stilini de dikkate al. Tek akışta bitir.
+</code></pre>
+<pre><code class="language-text">$social-plan Voyago için 30 günlük Instagram planı hazırla. Her güne kanca, video senaryosu, sahne fikri, paylaşım açıklaması ve CTA yaz. Verisi olmayan en iyi saat veya performans rakamı uydurma.
+</code></pre>
+<pre><code class="language-text">$social-voice Bu metni Emel sesiyle Türkçe oku. Kelime zamanlarını da çıkar. Mevcut onaylı ses varsa onu yeniden üretme.
+</code></pre>
+<pre><code class="language-text">$social-sfx Bu projede kart girişlerine yumuşak kayma, ana geçişlere kısa whoosh, kapanışa tek vurgu yerleştir. Konuşmanın altında tut ve son MP4'ün ses seviyesini ölç.
+</code></pre>
+<pre><code class="language-text">$social-analytics Ekteki Instagram dışa aktarımını incele. İçerik türü bazında kaydetme ve paylaşım performansını karşılaştır; sonraki 10 içerik için test öner.
+</code></pre>
+<p>Claude Code'da bu örneklerin başındaki <code>$</code> işaretini <code>/</code> olarak değiştirin.</p>
+<h2>Terminal: temel işlemler</h2>
+<p><code>social</code> kısayolu <code>C:/Users/birlik grup/.local/bin/social.cmd</code> içine kuruldu. Komut tanınmazsa
+yeni terminal açın veya aşağıdaki tam yollu çağrıyı kullanın:</p>
+<pre><code class="language-powershell">&amp; 'C:/Users/birlik grup/Documents/Codex/tools/social-studio/social.cmd' --help
+</code></pre>
+<p>Bağımlılıkları denetleyin:</p>
+<pre><code class="language-powershell">social doctor
+</code></pre>
+<p><code>core_ready: true</code> çekirdek akışın hazır olduğunu gösterir. HyperFrames'in kendi raporundaki
+Docker, Kokoro ve MusicGen gibi alternatifler eksik olabilir; bu kurulumda onların yerine
+yerel Whisper, Edge TTS ve Earshot kullanılır. Seslendirme için internet gerekir.</p>
+<p>Video veya desteklenen URL'yi analiz edin:</p>
+<pre><code class="language-powershell">social analyze 'C:/Videolar/referans.mp4' --out 'C:/Videolar/is-01/analiz'
+</code></pre>
+<pre><code class="language-powershell">social analyze 'https://www.youtube.com/watch?v=VIDEO_ID' --out 'C:/Videolar/is-02/analiz'
+</code></pre>
+<p>Varsayılan konuşma modeli <strong>large-v3-turbo</strong>: bilgisayara indirildi ve Türkçe örnekle sınandı.
+Daha hızlı taslak için <code>--model small</code>, başka dil için <code>--language auto</code>, sessiz görüntü için
+<code>--no-speech</code> ekleyin. URL indirme desteği siteye, oturuma ve kaynak erişimine bağlıdır;
+ulaşılamayan bağlantı yerine indirilen yerel dosya kullanılabilir.</p>
+<p>Önceki analiz dosyalarını korumak için <code>--out</code> klasörü boş olmalıdır; her iş/sürüm için yeni
+klasör seçin. Takvim iskeleti de mevcut <code>calendar.json</code>/<code>calendar.csv</code> dosyalarının üzerine yazılmaz.</p>
+<p>Sahne algılama aynı zemini paylaşan hareketli yazı videolarına göre ayarlandı. Çok fazla kesme
+çıkarırsa <code>--scene-threshold 8</code> gibi daha yüksek eşik deneyebilirsiniz. En kısa sahne süresi
+<code>--min-scene 0.3</code> ile belirlenir. Kesme listesi yine de görsel incelemeyle doğrulanır.</p>
+<p>Analiz klasörü şunları içerir:</p>
+<table>
+<thead>
+<tr>
+<th>Dosya</th>
+<th>İşlevi</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>analysis.json</code>, <code>probe.json</code></td>
+<td>Ölçü, fps, süre ve medya bilgileri</td>
+</tr>
+<tr>
+<td><code>scenes.json</code></td>
+<td>Algılanan sahne sınırları</td>
+</tr>
+<tr>
+<td><code>contact-sheet.jpg</code></td>
+<td>Toplu referans kareleri</td>
+</tr>
+<tr>
+<td><code>frames/</code>, <code>frames.json</code></td>
+<td>Kesme çevresindeki ardışık kareler ve zamanları</td>
+</tr>
+<tr>
+<td><code>audio.wav</code></td>
+<td>Analiz için çıkarılmış ses</td>
+</tr>
+<tr>
+<td><code>transcript.json</code></td>
+<td>Konuşma, kelime zamanları ve güven puanları</td>
+</tr>
+<tr>
+<td><code>transcript.txt</code>, <code>captions.srt</code></td>
+<td>Metin ve altyazı</td>
+</tr>
+<tr>
+<td><code>REBUILD.md</code></td>
+<td>Agent için yeniden kurma başlangıcı</td>
+</tr>
+</tbody>
+</table>
+<p>Terminalde <code>analyze</code> analiz paketini hazırlar. Tam video üretimi için Codex/Claude'daki
+<code>social-rebuild</code> becerisi bu paketi okuyup kaynak kodu oluşturur ve renderı tamamlar.</p>
+<h2>Seslendirme ve efekt</h2>
+<p>Kadın sesi:</p>
+<pre><code class="language-powershell">social voice --text 'Hikâyeni birlikte oluşturalım.' --voice tr-TR-EmelNeural --out 'C:/Videolar/is-01/ses.mp3'
+</code></pre>
+<p>Erkek sesi ve dosyadan metin:</p>
+<pre><code class="language-powershell">social voice --file 'C:/Videolar/is-01/metin.txt' --voice tr-TR-AhmetNeural --out 'C:/Videolar/is-01/ses-erkek.mp3'
+</code></pre>
+<p>Hız ayarı örneği: <code>--rate '+10%'</code>. Mevcut bir ses dosyasının üzerine yazılmaz; yeni sürüm adı seçin.
+Edge TTS metni Microsoft'un çevrimiçi servisine gönderir. Ürettiği SRT cümle düzeyindedir.
+Kelime düzeyi zamanları ayrıca çıkarın:</p>
+<pre><code class="language-powershell">social transcribe 'C:/Videolar/is-01/ses.mp3' --out 'C:/Videolar/is-01/konusma'
+</code></pre>
+<p>Whisper zamanları tahmindir. Düşük güvenli kelimeler <code>low_confidence_words</code> içinde işaretlenir;
+marka/özel adları ve ilk cümleyi gözden geçirin.</p>
+<p>Efektleri listeleyin ve oluşturun:</p>
+<pre><code class="language-powershell">social sfx sfx list --kind whoosh
+social sfx sfx render swipe/glide -o 'C:/Videolar/is-01/kayma.wav' --dur 0.5 --apex 0.16 --peak -16
+social sfx sfx check 'C:/Videolar/is-01/kayma.wav'
+</code></pre>
+<p>Efektin dosya başlangıcını değil, ölçülen tepe zamanını hareketin vurgusuna denk getirin.
+Örnek: görsel vurgu 3.00s, efekt tepesi 0.16s ise ses 2.84s'de başlar.
+Efekt dosyasını oluşturmak onu videoya eklemez; agent ses katmanı olarak projeye yerleştirir.</p>
+<p>Premium ElevenLabs SDK'sı da kurulu. Kendi hesabınızdan <code>ELEVENLABS_API_KEY</code> ortam değişkenini
+ayarladığınızda <code>--provider elevenlabs --voice VOICE_ID</code> kullanılabilir. Bu kurulumda ücretli
+ses/efekt üretimi yapılmadı. Anahtarı kılavuza veya herkese açık proje dosyasına yazmayın.</p>
+<h2>Kodla video, önizleme ve render</h2>
+<p>Yeni HyperFrames projesi:</p>
+<pre><code class="language-powershell">social hf init 'C:/Videolar/is-01/proje' --skip-skills --non-interactive --resolution portrait
+</code></pre>
+<p>Agent HTML/GSAP sahnelerini doldurduktan sonra:</p>
+<pre><code class="language-powershell">social hf check 'C:/Videolar/is-01/proje' --json
+social hf snapshot 'C:/Videolar/is-01/proje' --at 1,3,5
+social hf preview 'C:/Videolar/is-01/proje' --background
+social render 'C:/Videolar/is-01/proje' --out 'C:/Videolar/is-01/final-v1.mp4'
+</code></pre>
+<p>Önizleme komutu gerçek bağlantıyı yazar. Tarayıcıda zaman çizelgesi ve düzenlenebilir sahneler
+açılır. İsterseniz <a href="https://hyperframes.studio/">HyperFrames masaüstü uygulamasında</a> düzenlemeye
+devam edebilirsiniz. Yerel render için Pro abonelik gerekmez; sağlayıcının ücretli medya ve
+hazır reverse/style servisleri ayrı özelliklerdir.</p>
+<p>Alternatif React motoru Remotion da kurulu; resmî beceri Codex ve Claude'ya eklendi:</p>
+<pre><code class="language-powershell">social remotion versions
+social remotion compositions 'C:/Videolar/react-proje/src/index.jsx'
+</code></pre>
+<p>Remotion paketleri aynı <strong>4.0.540</strong> sürümüne sabitlendi. Kendi kullanımınıza uyan Remotion lisans
+koşullarını <a href="https://www.remotion.dev/license">projenin lisans sayfasında</a> kontrol edebilirsiniz.</p>
+<h2>Son kontrol ve referansla karşılaştırma</h2>
+<pre><code class="language-powershell">social check 'C:/Videolar/is-01/final-v1.mp4'
+social master 'C:/Videolar/is-01/final-v1.mp4' --out 'C:/Videolar/is-01/final-master.mp4'
+social compare 'C:/Videolar/referans.mp4' 'C:/Videolar/is-01/final-master.mp4' --out 'C:/Videolar/is-01/karsilastirma'
+</code></pre>
+<p><code>check</code>: dosyanın baştan sona açılması, codec/süre ve ses ölçümü.
+<code>master</code>: iki geçişli -16 LUFS / -1.5dBTP hedefi; video görüntüsü tekrar kodlanmaz.
+<code>compare</code>: örtüşen zaman aralığındaki bütün çözülebilen kareler, 320px analiz genişliğinde
+karşılaştırılır. Ölçü/fps/süre farkları ayrıca kaydedilir. En farklı anlar kaynak / çıktı / fark
+olarak <code>index.html</code> içinde gösterilir. Bu, “yüzde kaç aynı” estetik puanı değildir;
+ses senkronunu, kaynak görüntü kalitesini ve katmanların düzenlenebilirliğini ayrıca inceleriz.</p>
+<p>Her video için ilk denemede %100 birebir eşleşme garantisi verilemez. Kaynak görüntü, font,
+özel çekim ve model üretimi farklı olabilir. Sistem tek talepte analiz → kurma → render →
+karşılaştırma → düzeltme döngüsünü yürütmek için hazırlandı; kalan farklar açıkça raporlanır.</p>
+<h2>Planlama ve performans verileri</h2>
+<p>Agent için tamamlanmış takvim isteği: <code>$social-plan</code> / <code>/social-plan</code>.
+Terminalde yalnızca takvim iskeleti:</p>
+<pre><code class="language-powershell">social plan --brand 'Voyago' --days 30 --start 2026-11-06 --out 'C:/Videolar/voyago-plan'
+</code></pre>
+<p><code>calendar.json</code> ve <code>calendar.csv</code> taslaktır. Agent marka/hedef kitleye göre kanca, metin ve
+açıklamaları doldurur. 19:00 başlangıç varsayımıdır; hesabınızın kanıtlanmış en iyi saati değildir.</p>
+<p>Performans dışa aktarımınızı aşağıdaki alanlarla normalize edin veya agentten bunu yapmasını isteyin:</p>
+<pre><code class="language-text">id,platform,date,format,topic,views,reach,likes,comments,shares,saves
+</code></pre>
+<pre><code class="language-powershell">social analytics 'C:/Videolar/performans.csv' --out 'C:/Videolar/performans-raporu.json'
+</code></pre>
+<p>JSON dizi de desteklenir. Sayıları binlik ayırıcı olmadan yazın. Etkileşim beğeni + yorum +
+paylaşım + kaydetme toplamıdır; oran erişim varsa erişime, yoksa görüntülemeye bölünür.
+Eksikler işaretlenir. Farklı platform/paydalı oranları aynı listede körlemesine kıyaslamayın.
+Canlı hesap verisi için bağlı Postiz hesabı kullanılabilir; veri yokken gerçek performans iddiası üretilmez.</p>
+<h2>Paylaşım ve hesap bağlantısı</h2>
+<p>Ofisteki mevcut Postiz kurulumunu <strong>Ömer geliştiriyor</strong>. O sistemi yayın merkezi olarak
+koruyoruz; ayrı bir kurulum veya varsayılan bulut hesabı açılmadı. Sunucu adresi ve API uyumu
+öğrenilene kadar içerikleri çevrimdışı aktarım paketi olarak hazırlayabilirsiniz:</p>
+<pre><code class="language-powershell">social handoff 'C:/Videolar/is-01/final-master.mp4' --caption-file 'C:/Videolar/is-01/aciklama.txt' --brand 'Voyago' --platform instagram --out 'C:/Videolar/is-01/omer-paketi'
+</code></pre>
+<p>ZIP içinde video, otomatik seçilmiş kapak, açıklama ve <code>publication.json</code> bulunur. Tarih
+eklemek için <code>--scheduled-at '2026-11-06T19:00:00+03:00'</code> kullanın. Komut yayın/zamanlama
+yapmaz; paketi taslak olarak hazırlar. JSON, mevcut sunucunun şemasına eşlenecek ortak bir
+sözleşmedir; doğrudan Postiz API isteği değildir.</p>
+<p>Ömer'den gereken bilgiler ve aktarım sözleşmesi: <a href="POSTIZ-OMER-NOTU.md">POSTIZ-OMER-NOTU.md</a>.
+Mevcut sunucu ve giriş yöntemi belirlendikten sonra bağlantı yapılır. Aşağıdaki giriş komutu
+istemcinin varsayılan OAuth sunucusunu kullanır; Ömer'in kurulumuna otomatik bağlandığı varsayılmaz:</p>
+<pre><code class="language-powershell">social postiz auth:login
+social postiz auth:status
+social postiz integrations:list
+</code></pre>
+<p>Hesap girişini tarayıcıda kendiniz tamamlarsınız. API anahtarı yöntemi de desteklenir:
+<code>POSTIZ_API_KEY</code> ortam değişkeni. Kendi sunucunuzu kullanıyorsanız Postiz'in belgelerindeki
+sunucu adresini de ayarlayın. Docker veya Postiz sunucusu bu bilgisayara kurulmadı.</p>
+<p>Medya ve taslak hazırlama komutları:</p>
+<pre><code class="language-powershell">social postiz upload 'C:/Videolar/is-01/final-master.mp4'
+social postiz integrations:settings GERCEK_INTEGRATION_ID
+social postiz posts:create --help
+</code></pre>
+<p>Yüklemenin döndürdüğü gerçek medya yolu/ID ve platform ayarlarını kullanın. Örnek taslak metni:</p>
+<pre><code class="language-powershell">social postiz posts:create -c 'Onaylı paylaşım metni' -s '2026-11-06T19:00:00+03:00' -t draft -i GERCEK_INTEGRATION_ID
+</code></pre>
+<p>Video paylaşımı için <code>upload</code> sonucunun medya alanını da eklemek gerekir; agent bunu mevcut
+CLI şemasına göre yapar. <code>-t schedule</code> gerçek zamanlama oluşturur. Bir video oluşturma isteği
+tek başına yayınlama isteği sayılmaz. Yayın/zamanlama istediğinizde hedef hesap ve tarih
+belirli olmalı; işlemden sonra dönen durum ve zaman kontrol edilir.</p>
+<p>Postiz için gerekli Node <strong>22.23.4</strong> ayrı kuruldu. Ana Node <strong>24.19.0</strong> değiştirilmedi.</p>
+<h2>Bir klasöre video bırakarak çalışma</h2>
+<p>Hazır gelen kutusu:</p>
+<pre><code class="language-text">C:/Users/birlik grup/Documents/Codex/tools/social-studio/inbox
+</code></pre>
+<p>Klasördeki videoları bir kez analiz edin:</p>
+<pre><code class="language-powershell">social inbox
+</code></pre>
+<p>Kendi klasörünüzü izleyin:</p>
+<pre><code class="language-powershell">social inbox 'C:/Videolar/Gelenler' --watch
+</code></pre>
+<p>Komut terminal açıkken her 5 saniyede kontrol eder. Kopyalanması devam eden dosyayı bekler;
+tamamlanan analizleri günlükte tutar. <strong>Ctrl+C</strong> ile durur. Kurulum arka planda sürekli bir
+izleyici başlatmadı. Analizden sonra sohbette “<code>$social-rebuild</code> en son gelen videoyu tamamla”
+veya Claude'da “<code>/social-rebuild</code> en son gelen videoyu tamamla” yazabilirsiniz.</p>
+<h2>Kurulanlar ve dosyalar</h2>
+<p>Ana klasör:</p>
+<pre><code class="language-text">C:/Users/birlik grup/Documents/Codex/tools/social-studio
+</code></pre>
+<p>HyperFrames, GSAP, Remotion/React, faster-whisper, PySceneDetect/OpenCV, yt-dlp, Edge TTS,
+ElevenLabs SDK, Postiz CLI, izole Python ortamı, FFmpeg/FFprobe 9.0.2 ve Postiz için ayrı Node.
+Önceden çalışan Earshot kurulumu ortak efekt ve analiz aracı olarak bağlandı.</p>
+<p>Codex özel becerileri: <code>C:/Users/birlik grup/.agents/skills/social-*</code>.
+Claude özel becerileri: <code>C:/Users/birlik grup/.claude/skills/social-*</code>.
+HyperFrames çekirdek ve Remotion resmî becerileri de kuruldu.
+ProAsistan, Bursa VIP, Mika ve psikoloji serisinin önceki onaylı kaynakları korundu.</p>
+<p>ComfyUI ve stable-audio-tools araştırıldı; model/VRAM/lisans seçimi gerektiren ayrı üretim
+altyapıları oldukları için çekirdek kuruluma eklenmedi. HyperFrames Pro, ElevenLabs hesabı,
+Postiz hesabı ve platform izinleri satın alınmış/bağlanmış gibi gösterilmez.</p>
+<p>Araştırmanın son push/arşiv/lisans kayıtları: <a href="REPOSITORIES.md">REPOSITORIES.md</a>.
+Tam ham kayıt: <code>repositories.json</code>. Her repo için durum açıkça yazılıdır.
+Kurulu sürümler: <code>package-lock.json</code>, <code>installed-requirements.txt</code>.
+İş akışı ayrıntıları: <code>WORKFLOWS.md</code>. Son doğrulama: <code>VERIFICATION.md</code>.</p>
+<h2>Örnek üretim ve bakım</h2><video controls preload="metadata" poster="jobs/demo/poster.jpg" src="jobs/demo/social-studio-final.mp4" aria-label="11 saniyelik Social Studio örnek videosu"></video>
+<p>Hazır örnek: <code>jobs/demo/social-studio-final.mp4</code>.
+Düzenlenebilir kaynak: <code>jobs/demo/index.html</code> ve <code>jobs/demo/compositions/</code>.
+Örnek: 11 saniye, 1080×1920, 30fps; Türkçe ses, yerel efektler ve kodla animasyon.</p>
+<pre><code class="language-powershell">social hf preview 'C:/Users/birlik grup/Documents/Codex/tools/social-studio/jobs/demo' --background --port 4317
+</code></pre>
+<p>Paket sürümleri birlikte sınandı. Güncellemeden önce eski kilit dosyalarını saklayın;
+Remotion paketlerinin sürümlerini birbirinden ayırmayın. FFmpeg ve Node binarylerinin kaynak
+URL ve SHA-256 kayıtları <code>bin/</code> ve <code>runtimes/node22/</code> içinde. <code>social doctor</code> bir sorun gösterirse
+<code>doctor.json</code> ve ilgili işin logları teşhise yeterli başlangıç sağlar.</p>
+<h2>Resmî kaynaklar</h2>
+<ul>
+<li><a href="https://github.com/heygen-com/hyperframes">HyperFrames</a></li>
+<li><a href="https://github.com/remotion-dev/remotion">Remotion</a></li>
+<li><a href="https://github.com/SYSTRAN/faster-whisper">faster-whisper</a></li>
+<li><a href="https://github.com/Breakthrough/PySceneDetect">PySceneDetect</a></li>
+<li><a href="https://github.com/rany2/edge-tts">Edge TTS</a></li>
+<li><a href="https://github.com/yt-dlp/yt-dlp">yt-dlp</a></li>
+<li><a href="https://github.com/Leonxlnx/earshot">Earshot</a></li>
+<li><a href="https://github.com/gitroomhq/postiz-agent">Postiz agent</a></li>
+<li><a href="https://github.com/elevenlabs/elevenlabs-python">ElevenLabs Python SDK</a></li>
+<li><a href="https://learn.chatgpt.com/docs/build-skills">Codex becerileri</a></li>
+<li><a href="https://code.claude.com/docs/en/skills">Claude Code becerileri</a></li>
+</ul>
+</article></div><script>
+const nav=document.querySelector('#toc'), sections=[];
+document.querySelectorAll('h2').forEach((h,i)=>{h.id='bolum-'+i;const a=document.createElement('a');a.href='#'+h.id;a.textContent=h.textContent;nav.append(a);
+const nodes=[h];let n=h.nextElementSibling;while(n&&n.tagName!=='H2'){nodes.push(n);n=n.nextElementSibling}sections.push({nodes,text:nodes.map(x=>x.textContent).join(' ').toLocaleLowerCase('tr'),a});});
+document.querySelectorAll('pre').forEach(pre=>{const b=document.createElement('button');b.className='copy';b.textContent='Kopyala';b.onclick=async()=>{
+const value=pre.querySelector('code').textContent;try{await navigator.clipboard.writeText(value);b.textContent='Kopyalandı';setTimeout(()=>b.textContent='Kopyala',1500)}catch(e){const r=document.createRange();r.selectNodeContents(pre.querySelector('code'));const s=getSelection();s.removeAllRanges();s.addRange(r);b.textContent='Seçildi — Ctrl+C'}};pre.append(b)});
+document.querySelector('#search').oninput=e=>{const q=e.target.value.trim().toLocaleLowerCase('tr');sections.forEach(s=>{const hide=q&&!s.text.includes(q);s.nodes.forEach(n=>n.classList.toggle('hidden',!!hide));s.a.classList.toggle('hidden',!!hide)})};
+</script></body></html>

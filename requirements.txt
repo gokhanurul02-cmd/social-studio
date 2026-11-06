@@ -1,0 +1,7 @@
+edge-tts>=7.2,<8
+faster-whisper>=1.2,<2
+av>=15,<17
+scenedetect[opencv]>=0.6.7,<0.7
+yt-dlp[default]
+Pillow>=11,<13
+elevenlabs>=2,<3

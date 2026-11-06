@@ -1,0 +1,163 @@
+{
+  "verified_at": "2026-11-05T08:19:16.211478+00:00",
+  "source": "GitHub REST API /repos/{owner}/{repo}",
+  "selection": "İş akışına uygunluk, bakım faaliyeti, yerel kurulabilirlik, agent desteği ve lisans. Evrensel en iyi sıralaması değildir.",
+  "repositories": [
+    {
+      "repo": "heygen-com/hyperframes",
+      "url": "https://github.com/heygen-com/hyperframes",
+      "status": "Kurulu",
+      "reason": "HTML, GSAP, video render ve düzenlenebilir hareketli grafikler.",
+      "archived": false,
+      "pushed_at": "2026-11-05T08:17:56Z",
+      "updated_at": "2026-11-05T08:17:49Z",
+      "stargazers_count": 79152,
+      "default_branch": "main",
+      "license": "Apache-2.0"
+    },
+    {
+      "repo": "remotion-dev/remotion",
+      "url": "https://github.com/remotion-dev/remotion",
+      "status": "Kurulu",
+      "reason": "React tabanlı alternatif video motoru; lisansı kullanım şekline göre inceleyin.",
+      "archived": false,
+      "pushed_at": "2026-11-05T08:19:08Z",
+      "updated_at": "2026-11-05T08:18:38Z",
+      "stargazers_count": 70862,
+      "default_branch": "main",
+      "license": "NOASSERTION"
+    },
+    {
+      "repo": "remotion-dev/skills",
+      "url": "https://github.com/remotion-dev/skills",
+      "status": "Beceri",
+      "reason": "Resmî Remotion agent yönergeleri.",
+      "archived": false,
+      "pushed_at": "2026-11-02T08:50:22Z",
+      "updated_at": "2026-11-05T07:51:25Z",
+      "stargazers_count": 6383,
+      "default_branch": "main",
+      "license": "Bilinmiyor"
+    },
+    {
+      "repo": "SYSTRAN/faster-whisper",
+      "url": "https://github.com/SYSTRAN/faster-whisper",
+      "status": "Kurulu",
+      "reason": "Yerel, kelime zamanlı konuşma çözümü; CPU int8 varsayılan.",
+      "archived": false,
+      "pushed_at": "2026-11-02T11:19:13Z",
+      "updated_at": "2026-11-05T07:35:19Z",
+      "stargazers_count": 26490,
+      "default_branch": "master",
+      "license": "MIT"
+    },
+    {
+      "repo": "Breakthrough/PySceneDetect",
+      "url": "https://github.com/Breakthrough/PySceneDetect",
+      "status": "Kurulu",
+      "reason": "Sahne kesme analizi; yumuşak geçişleri gözle de inceleyin.",
+      "archived": false,
+      "pushed_at": "2026-11-02T03:02:29Z",
+      "updated_at": "2026-11-05T08:01:49Z",
+      "stargazers_count": 5380,
+      "default_branch": "main",
+      "license": "BSD-3-Clause"
+    },
+    {
+      "repo": "rany2/edge-tts",
+      "url": "https://github.com/rany2/edge-tts",
+      "status": "Kurulu",
+      "reason": "Çevrimiçi Türkçe seslendirme; model yerel değildir, internet gerekir.",
+      "archived": false,
+      "pushed_at": "2026-10-14T09:30:53Z",
+      "updated_at": "2026-11-05T07:48:15Z",
+      "stargazers_count": 12459,
+      "default_branch": "master",
+      "license": "NOASSERTION"
+    },
+    {
+      "repo": "elevenlabs/elevenlabs-python",
+      "url": "https://github.com/elevenlabs/elevenlabs-python",
+      "status": "SDK kurulu / anahtar gerekli",
+      "reason": "Premium ses ve efekt servisleri; bu kurulum ücretli üretim çağırmaz.",
+      "archived": false,
+      "pushed_at": "2026-11-04T17:14:33Z",
+      "updated_at": "2026-11-04T15:54:26Z",
+      "stargazers_count": 3172,
+      "default_branch": "main",
+      "license": "MIT"
+    },
+    {
+      "repo": "yt-dlp/yt-dlp",
+      "url": "https://github.com/yt-dlp/yt-dlp",
+      "status": "Kurulu",
+      "reason": "Desteklenen video URL kaynaklarını içeri alma; her site/oturum garantilenmez.",
+      "archived": false,
+      "pushed_at": "2026-11-04T07:16:27Z",
+      "updated_at": "2026-11-05T08:18:51Z",
+      "stargazers_count": 205347,
+      "default_branch": "master",
+      "license": "Unlicense"
+    },
+    {
+      "repo": "Leonxlnx/earshot",
+      "url": "https://github.com/Leonxlnx/earshot",
+      "status": "Mevcut kurulum bağlandı",
+      "reason": "Yerel efekt sentezi, ses seviyesi ve miks kontrolü.",
+      "archived": false,
+      "pushed_at": "2026-10-22T23:12:59Z",
+      "updated_at": "2026-11-05T08:14:46Z",
+      "stargazers_count": 3924,
+      "default_branch": "main",
+      "license": "MIT"
+    },
+    {
+      "repo": "gitroomhq/postiz-agent",
+      "url": "https://github.com/gitroomhq/postiz-agent",
+      "status": "CLI kurulu / hesap gerekli",
+      "reason": "Hesap bağlantısı, dosya yükleme, paylaşım ve analiz.",
+      "archived": false,
+      "pushed_at": "2026-11-05T00:48:32Z",
+      "updated_at": "2026-11-05T07:21:12Z",
+      "stargazers_count": 563,
+      "default_branch": "main",
+      "license": "NOASSERTION"
+    },
+    {
+      "repo": "gitroomhq/postiz-app",
+      "url": "https://github.com/gitroomhq/postiz-app",
+      "status": "Araştırıldı / sunucu kurulmadı",
+      "reason": "Kendi sunucunda sosyal medya yönetimi. Docker yok; CLI istemcisi hazır.",
+      "archived": false,
+      "pushed_at": "2026-11-05T08:15:19Z",
+      "updated_at": "2026-11-05T08:15:30Z",
+      "stargazers_count": 40937,
+      "default_branch": "main",
+      "license": "AGPL-3.0"
+    },
+    {
+      "repo": "Comfy-Org/ComfyUI",
+      "url": "https://github.com/Comfy-Org/ComfyUI",
+      "status": "Araştırıldı / kurulu değil",
+      "reason": "Model tabanlı görsel/video üretimi; seçili model ve VRAM gerektirir. Çekirdek iş akışı için zorunlu değil.",
+      "archived": false,
+      "pushed_at": "2026-11-05T08:03:45Z",
+      "updated_at": "2026-11-05T08:13:40Z",
+      "stargazers_count": 145110,
+      "default_branch": "master",
+      "license": "GPL-3.0"
+    },
+    {
+      "repo": "Stability-AI/stable-audio-tools",
+      "url": "https://github.com/Stability-AI/stable-audio-tools",
+      "status": "Araştırıldı / kurulu değil",
+      "reason": "Üretken ses model altyapısı; ağırlık erişimi ve model lisansı ayrıca gerekir.",
+      "archived": false,
+      "pushed_at": "2026-11-01T04:15:33Z",
+      "updated_at": "2026-11-04T21:01:40Z",
+      "stargazers_count": 3901,
+      "default_branch": "main",
+      "license": "MIT"
+    }
+  ]
+}

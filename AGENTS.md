@@ -3,8 +3,10 @@
 ## Current user direction — 6 November 2026
 
 Read PROJECT-STATE.md when resuming. The dedicated private reference-project backup is
-https://github.com/kubilaytinmaz/cybertruck-threejs-study. Its cybertruck-v5-backup release
+https://github.com/gokhanurul02-cmd/cybertruck-threejs-study. Its cybertruck-v5-backup release
 contains the required reference media and latest output, with SHA-256 records.
+The user's intended GitHub owner is gokhanurul02-cmd. Verify that exact authenticated
+account before creating repositories or changing remote ownership.
 
 The channel goal is automated production of one original 3D short per day. Use the
 Cybertruck study and the next 3–4 user-supplied Zack D. Films references to establish a

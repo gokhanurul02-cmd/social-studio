@@ -28,4 +28,4 @@ node render/video.cjs ../renders/cybertruck-1080p.mp4
 
 [Kaldığımız yer](PROJECT-STATE.md) dosyası kararları, hedefleri ve sonraki işleri içerir. `agent-skills/` altında Codex ve Claude becerilerimizin kopyaları vardır. Cybertruck referansının analiz ve karşılaştırma çıktıları iş klasöründe saklanır.
 
-Çalışmanın bağımsız özel deposu [cybertruck-threejs-study](https://github.com/kubilaytinmaz/cybertruck-threejs-study). Bu deponun `cybertruck-v5-backup` sürümünde referans, son master, önizleme ve rig dosyası için doğrulanabilir medya yedeği bulunur. Geri yükleme komutları o deponun README'sinde yer alır.
+Çalışmanın bağımsız özel deposu [cybertruck-threejs-study](https://github.com/gokhanurul02-cmd/cybertruck-threejs-study). Bu deponun `cybertruck-v5-backup` sürümünde referans, son master, önizleme ve rig dosyası için doğrulanabilir medya yedeği bulunur. Geri yükleme komutları o deponun README'sinde yer alır.

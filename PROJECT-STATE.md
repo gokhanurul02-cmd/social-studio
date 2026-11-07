@@ -1,6 +1,6 @@
 # Kaldığımız yer
 
-7 Kasım 2026 itibarıyla Social Studio, yerel analiz ve kodla video üretim araçlarını içeriyor. Cybertruck çalışmasının güncel sürümü v5. Kaynak kodu hem bu depoda hem özel `kubilaytinmaz/cybertruck-threejs-study` deposunda korunur.
+7 Kasım 2026 itibarıyla Social Studio, yerel analiz ve kodla video üretim araçlarını içeriyor. Cybertruck çalışmasının güncel sürümü v5. Kaynak kodu hem bu depoda hem özel `gokhanurul02-cmd/cybertruck-threejs-study` deposunda korunur.
 
 Hedef, referanslardan görsel dil ve kurgu öğrenerek özgün konularda günlük bir 3D bölüm üretebilmek. Her bölümde konuya uygun tanınabilir bir ünlü karakter isteniyor. Türkçe ve İngilizce kanallar değerlendiriliyor. Bolt ve tribün dalgası pilot önerisi, henüz üretilmedi. Yeni 3–4 referans bekleniyor. Günlük otomasyon ve hesaplara yayın henüz kurulmadı.
 

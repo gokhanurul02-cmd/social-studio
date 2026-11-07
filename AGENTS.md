@@ -2,6 +2,10 @@
 
 ## Current user direction — 6 November 2026
 
+Read PROJECT-STATE.md when resuming. The dedicated private reference-project backup is
+https://github.com/kubilaytinmaz/cybertruck-threejs-study. Its cybertruck-v5-backup release
+contains the required reference media and latest output, with SHA-256 records.
+
 The channel goal is automated production of one original 3D short per day. Use the
 Cybertruck study and the next 3–4 user-supplied Zack D. Films references to establish a
 reusable visual and editing template. Compare hooks, narration, shot timing, camera,

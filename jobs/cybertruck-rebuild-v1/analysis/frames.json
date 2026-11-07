@@ -1,0 +1,192 @@
+[
+  {
+    "time": 0.0,
+    "frame": 0,
+    "file": "C:\\Users\\birlik grup\\Documents\\Codex\\tools\\social-studio\\jobs\\cybertruck-rebuild-v1\\analysis\\frames\\0000-0.000000.jpg"
+  },
+  {
+    "time": 0.033367,
+    "frame": 1,
+    "file": "C:\\Users\\birlik grup\\Documents\\Codex\\tools\\social-studio\\jobs\\cybertruck-rebuild-v1\\analysis\\frames\\0001-0.033367.jpg"
+  },
+  {
+    "time": 0.066733,
+    "frame": 2,
+    "file": "C:\\Users\\birlik grup\\Documents\\Codex\\tools\\social-studio\\jobs\\cybertruck-rebuild-v1\\analysis\\frames\\0002-0.066733.jpg"
+  },
+  {
+    "time": 0.61543,
+    "frame": 18,
+    "file": "C:\\Users\\birlik grup\\Documents\\Codex\\tools\\social-studio\\jobs\\cybertruck-rebuild-v1\\analysis\\frames\\0003-0.615430.jpg"
+  },
+  {
+    "time": 1.230859,
+    "frame": 37,
+    "file": "C:\\Users\\birlik grup\\Documents\\Codex\\tools\\social-studio\\jobs\\cybertruck-rebuild-v1\\analysis\\frames\\0004-1.230859.jpg"
+  },
+  {
+    "time": 1.846289,
+    "frame": 55,
+    "file": "C:\\Users\\birlik grup\\Documents\\Codex\\tools\\social-studio\\jobs\\cybertruck-rebuild-v1\\analysis\\frames\\0005-1.846289.jpg"
+  },
+  {
+    "time": 2.461719,
+    "frame": 74,
+    "file": "C:\\Users\\birlik grup\\Documents\\Codex\\tools\\social-studio\\jobs\\cybertruck-rebuild-v1\\analysis\\frames\\0006-2.461719.jpg"
+  },
+  {
+    "time": 3.077148,
+    "frame": 92,
+    "file": "C:\\Users\\birlik grup\\Documents\\Codex\\tools\\social-studio\\jobs\\cybertruck-rebuild-v1\\analysis\\frames\\0007-3.077148.jpg"
+  },
+  {
+    "time": 3.692578,
+    "frame": 111,
+    "file": "C:\\Users\\birlik grup\\Documents\\Codex\\tools\\social-studio\\jobs\\cybertruck-rebuild-v1\\analysis\\frames\\0008-3.692578.jpg"
+  },
+  {
+    "time": 4.308007,
+    "frame": 129,
+    "file": "C:\\Users\\birlik grup\\Documents\\Codex\\tools\\social-studio\\jobs\\cybertruck-rebuild-v1\\analysis\\frames\\0009-4.308007.jpg"
+  },
+  {
+    "time": 4.923437,
+    "frame": 148,
+    "file": "C:\\Users\\birlik grup\\Documents\\Codex\\tools\\social-studio\\jobs\\cybertruck-rebuild-v1\\analysis\\frames\\0010-4.923437.jpg"
+  },
+  {
+    "time": 5.538867,
+    "frame": 166,
+    "file": "C:\\Users\\birlik grup\\Documents\\Codex\\tools\\social-studio\\jobs\\cybertruck-rebuild-v1\\analysis\\frames\\0011-5.538867.jpg"
+  },
+  {
+    "time": 6.154296,
+    "frame": 184,
+    "file": "C:\\Users\\birlik grup\\Documents\\Codex\\tools\\social-studio\\jobs\\cybertruck-rebuild-v1\\analysis\\frames\\0012-6.154296.jpg"
+  },
+  {
+    "time": 6.769726,
+    "frame": 203,
+    "file": "C:\\Users\\birlik grup\\Documents\\Codex\\tools\\social-studio\\jobs\\cybertruck-rebuild-v1\\analysis\\frames\\0013-6.769726.jpg"
+  },
+  {
+    "time": 7.385156,
+    "frame": 221,
+    "file": "C:\\Users\\birlik grup\\Documents\\Codex\\tools\\social-studio\\jobs\\cybertruck-rebuild-v1\\analysis\\frames\\0014-7.385156.jpg"
+  },
+  {
+    "time": 8.000585,
+    "frame": 240,
+    "file": "C:\\Users\\birlik grup\\Documents\\Codex\\tools\\social-studio\\jobs\\cybertruck-rebuild-v1\\analysis\\frames\\0015-8.000585.jpg"
+  },
+  {
+    "time": 8.616015,
+    "frame": 258,
+    "file": "C:\\Users\\birlik grup\\Documents\\Codex\\tools\\social-studio\\jobs\\cybertruck-rebuild-v1\\analysis\\frames\\0016-8.616015.jpg"
+  },
+  {
+    "time": 9.231445,
+    "frame": 277,
+    "file": "C:\\Users\\birlik grup\\Documents\\Codex\\tools\\social-studio\\jobs\\cybertruck-rebuild-v1\\analysis\\frames\\0017-9.231445.jpg"
+  },
+  {
+    "time": 9.846874,
+    "frame": 295,
+    "file": "C:\\Users\\birlik grup\\Documents\\Codex\\tools\\social-studio\\jobs\\cybertruck-rebuild-v1\\analysis\\frames\\0018-9.846874.jpg"
+  },
+  {
+    "time": 10.462304,
+    "frame": 314,
+    "file": "C:\\Users\\birlik grup\\Documents\\Codex\\tools\\social-studio\\jobs\\cybertruck-rebuild-v1\\analysis\\frames\\0019-10.462304.jpg"
+  },
+  {
+    "time": 11.077734,
+    "frame": 332,
+    "file": "C:\\Users\\birlik grup\\Documents\\Codex\\tools\\social-studio\\jobs\\cybertruck-rebuild-v1\\analysis\\frames\\0020-11.077734.jpg"
+  },
+  {
+    "time": 11.693163,
+    "frame": 350,
+    "file": "C:\\Users\\birlik grup\\Documents\\Codex\\tools\\social-studio\\jobs\\cybertruck-rebuild-v1\\analysis\\frames\\0021-11.693163.jpg"
+  },
+  {
+    "time": 12.308593,
+    "frame": 369,
+    "file": "C:\\Users\\birlik grup\\Documents\\Codex\\tools\\social-studio\\jobs\\cybertruck-rebuild-v1\\analysis\\frames\\0022-12.308593.jpg"
+  },
+  {
+    "time": 12.924022,
+    "frame": 387,
+    "file": "C:\\Users\\birlik grup\\Documents\\Codex\\tools\\social-studio\\jobs\\cybertruck-rebuild-v1\\analysis\\frames\\0023-12.924022.jpg"
+  },
+  {
+    "time": 13.539452,
+    "frame": 406,
+    "file": "C:\\Users\\birlik grup\\Documents\\Codex\\tools\\social-studio\\jobs\\cybertruck-rebuild-v1\\analysis\\frames\\0024-13.539452.jpg"
+  },
+  {
+    "time": 14.154882,
+    "frame": 424,
+    "file": "C:\\Users\\birlik grup\\Documents\\Codex\\tools\\social-studio\\jobs\\cybertruck-rebuild-v1\\analysis\\frames\\0025-14.154882.jpg"
+  },
+  {
+    "time": 14.770311,
+    "frame": 443,
+    "file": "C:\\Users\\birlik grup\\Documents\\Codex\\tools\\social-studio\\jobs\\cybertruck-rebuild-v1\\analysis\\frames\\0026-14.770311.jpg"
+  },
+  {
+    "time": 15.385741,
+    "frame": 461,
+    "file": "C:\\Users\\birlik grup\\Documents\\Codex\\tools\\social-studio\\jobs\\cybertruck-rebuild-v1\\analysis\\frames\\0027-15.385741.jpg"
+  },
+  {
+    "time": 16.001171,
+    "frame": 480,
+    "file": "C:\\Users\\birlik grup\\Documents\\Codex\\tools\\social-studio\\jobs\\cybertruck-rebuild-v1\\analysis\\frames\\0028-16.001171.jpg"
+  },
+  {
+    "time": 16.6166,
+    "frame": 498,
+    "file": "C:\\Users\\birlik grup\\Documents\\Codex\\tools\\social-studio\\jobs\\cybertruck-rebuild-v1\\analysis\\frames\\0029-16.616600.jpg"
+  },
+  {
+    "time": 17.23203,
+    "frame": 516,
+    "file": "C:\\Users\\birlik grup\\Documents\\Codex\\tools\\social-studio\\jobs\\cybertruck-rebuild-v1\\analysis\\frames\\0030-17.232030.jpg"
+  },
+  {
+    "time": 17.84746,
+    "frame": 535,
+    "file": "C:\\Users\\birlik grup\\Documents\\Codex\\tools\\social-studio\\jobs\\cybertruck-rebuild-v1\\analysis\\frames\\0031-17.847460.jpg"
+  },
+  {
+    "time": 18.462889,
+    "frame": 553,
+    "file": "C:\\Users\\birlik grup\\Documents\\Codex\\tools\\social-studio\\jobs\\cybertruck-rebuild-v1\\analysis\\frames\\0032-18.462889.jpg"
+  },
+  {
+    "time": 19.078319,
+    "frame": 572,
+    "file": "C:\\Users\\birlik grup\\Documents\\Codex\\tools\\social-studio\\jobs\\cybertruck-rebuild-v1\\analysis\\frames\\0033-19.078319.jpg"
+  },
+  {
+    "time": 19.693748,
+    "frame": 590,
+    "file": "C:\\Users\\birlik grup\\Documents\\Codex\\tools\\social-studio\\jobs\\cybertruck-rebuild-v1\\analysis\\frames\\0034-19.693748.jpg"
+  },
+  {
+    "time": 20.309178,
+    "frame": 609,
+    "file": "C:\\Users\\birlik grup\\Documents\\Codex\\tools\\social-studio\\jobs\\cybertruck-rebuild-v1\\analysis\\frames\\0035-20.309178.jpg"
+  },
+  {
+    "time": 20.924608,
+    "frame": 627,
+    "file": "C:\\Users\\birlik grup\\Documents\\Codex\\tools\\social-studio\\jobs\\cybertruck-rebuild-v1\\analysis\\frames\\0036-20.924608.jpg"
+  },
+  {
+    "time": 21.540037,
+    "frame": 646,
+    "file": "C:\\Users\\birlik grup\\Documents\\Codex\\tools\\social-studio\\jobs\\cybertruck-rebuild-v1\\analysis\\frames\\0037-21.540037.jpg"
+  }
+]

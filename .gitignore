@@ -38,6 +38,8 @@ __pycache__/
 /jobs/cybertruck-rebuild-v1/*
 !/jobs/cybertruck-rebuild-v1/CLAUDE.md
 !/jobs/cybertruck-rebuild-v1/REVIEW.md
+!/jobs/cybertruck-rebuild-v1/analysis/
+!/jobs/cybertruck-rebuild-v1/comparison-v5/
 !/jobs/cybertruck-rebuild-v1/project/
 /jobs/cybertruck-rebuild-v1/project/assets/Xbot.glb
 !/jobs/cybertruck-rebuild-v1/assets/

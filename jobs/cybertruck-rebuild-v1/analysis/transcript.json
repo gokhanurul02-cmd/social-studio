@@ -1,0 +1,508 @@
+{
+  "language": "en",
+  "probability": 1,
+  "engine": "faster-whisper",
+  "model": "large-v3-turbo",
+  "segments": [
+    {
+      "start": 0.0,
+      "end": 5.76,
+      "text": "If you strapped a baby to a pair of Cybertrucks to pull them, you would need 5,000 of them",
+      "avg_logprob": -0.10837082900106906,
+      "no_speech_prob": 3.538146880512072e-13,
+      "words": [
+        {
+          "start": 0.0,
+          "end": 0.2,
+          "word": " If",
+          "probability": 0.9724851250648499
+        },
+        {
+          "start": 0.2,
+          "end": 0.32,
+          "word": " you",
+          "probability": 0.997255265712738
+        },
+        {
+          "start": 0.32,
+          "end": 0.74,
+          "word": " strapped",
+          "probability": 0.9957575500011444
+        },
+        {
+          "start": 0.74,
+          "end": 0.86,
+          "word": " a",
+          "probability": 0.9786471128463745
+        },
+        {
+          "start": 0.86,
+          "end": 1.22,
+          "word": " baby",
+          "probability": 0.9946478009223938
+        },
+        {
+          "start": 1.22,
+          "end": 1.5,
+          "word": " to",
+          "probability": 0.9745209217071533
+        },
+        {
+          "start": 1.5,
+          "end": 1.64,
+          "word": " a",
+          "probability": 0.989176332950592
+        },
+        {
+          "start": 1.64,
+          "end": 1.82,
+          "word": " pair",
+          "probability": 0.9956148862838745
+        },
+        {
+          "start": 1.82,
+          "end": 1.94,
+          "word": " of",
+          "probability": 0.9980670809745789
+        },
+        {
+          "start": 1.94,
+          "end": 2.82,
+          "word": " Cybertrucks",
+          "probability": 0.9238417148590088
+        },
+        {
+          "start": 2.82,
+          "end": 3.04,
+          "word": " to",
+          "probability": 0.9863640666007996
+        },
+        {
+          "start": 3.04,
+          "end": 3.32,
+          "word": " pull",
+          "probability": 0.9966848492622375
+        },
+        {
+          "start": 3.32,
+          "end": 3.54,
+          "word": " them,",
+          "probability": 0.9738461971282959
+        },
+        {
+          "start": 3.8,
+          "end": 3.88,
+          "word": " you",
+          "probability": 0.9942711591720581
+        },
+        {
+          "start": 3.88,
+          "end": 4.04,
+          "word": " would",
+          "probability": 0.9603725075721741
+        },
+        {
+          "start": 4.04,
+          "end": 4.28,
+          "word": " need",
+          "probability": 0.9914012551307678
+        },
+        {
+          "start": 4.28,
+          "end": 4.66,
+          "word": " 5",
+          "probability": 0.39408567547798157
+        },
+        {
+          "start": 4.66,
+          "end": 5.34,
+          "word": ",000",
+          "probability": 0.9466138780117035
+        },
+        {
+          "start": 5.34,
+          "end": 5.5,
+          "word": " of",
+          "probability": 0.98236083984375
+        },
+        {
+          "start": 5.5,
+          "end": 5.76,
+          "word": " them",
+          "probability": 0.9956517815589905
+        }
+      ]
+    },
+    {
+      "start": 5.76,
+      "end": 11.08,
+      "text": "just to make them move. Now if you did the same thing with anacondas, it would take at",
+      "avg_logprob": -0.10837082900106906,
+      "no_speech_prob": 3.538146880512072e-13,
+      "words": [
+        {
+          "start": 5.76,
+          "end": 6.1,
+          "word": " just",
+          "probability": 0.8853708505630493
+        },
+        {
+          "start": 6.1,
+          "end": 6.34,
+          "word": " to",
+          "probability": 0.9973535537719727
+        },
+        {
+          "start": 6.34,
+          "end": 6.58,
+          "word": " make",
+          "probability": 0.993738055229187
+        },
+        {
+          "start": 6.58,
+          "end": 6.82,
+          "word": " them",
+          "probability": 0.9828033447265625
+        },
+        {
+          "start": 6.82,
+          "end": 7.24,
+          "word": " move.",
+          "probability": 0.9970089793205261
+        },
+        {
+          "start": 7.5,
+          "end": 7.78,
+          "word": " Now",
+          "probability": 0.7878381013870239
+        },
+        {
+          "start": 7.78,
+          "end": 7.98,
+          "word": " if",
+          "probability": 0.7915531992912292
+        },
+        {
+          "start": 7.98,
+          "end": 8.06,
+          "word": " you",
+          "probability": 0.9961445331573486
+        },
+        {
+          "start": 8.06,
+          "end": 8.2,
+          "word": " did",
+          "probability": 0.9948551654815674
+        },
+        {
+          "start": 8.2,
+          "end": 8.38,
+          "word": " the",
+          "probability": 0.9811391234397888
+        },
+        {
+          "start": 8.38,
+          "end": 8.7,
+          "word": " same",
+          "probability": 0.9990296363830566
+        },
+        {
+          "start": 8.7,
+          "end": 9.02,
+          "word": " thing",
+          "probability": 0.9837876558303833
+        },
+        {
+          "start": 9.02,
+          "end": 9.28,
+          "word": " with",
+          "probability": 0.989994466304779
+        },
+        {
+          "start": 9.28,
+          "end": 10.16,
+          "word": " anacondas,",
+          "probability": 0.8447898626327515
+        },
+        {
+          "start": 10.32,
+          "end": 10.42,
+          "word": " it",
+          "probability": 0.9947832226753235
+        },
+        {
+          "start": 10.42,
+          "end": 10.54,
+          "word": " would",
+          "probability": 0.9917343854904175
+        },
+        {
+          "start": 10.54,
+          "end": 10.9,
+          "word": " take",
+          "probability": 0.9908946752548218
+        },
+        {
+          "start": 10.9,
+          "end": 11.08,
+          "word": " at",
+          "probability": 0.979073166847229
+        }
+      ]
+    },
+    {
+      "start": 11.08,
+      "end": 17.56,
+      "text": "least 160 of the giant snakes to pull the truck. But if you got Dwayne the Rock Johnson to tow",
+      "avg_logprob": -0.10837082900106906,
+      "no_speech_prob": 3.538146880512072e-13,
+      "words": [
+        {
+          "start": 11.08,
+          "end": 11.28,
+          "word": " least",
+          "probability": 0.9947616457939148
+        },
+        {
+          "start": 11.28,
+          "end": 12.2,
+          "word": " 160",
+          "probability": 0.9734587073326111
+        },
+        {
+          "start": 12.2,
+          "end": 12.7,
+          "word": " of",
+          "probability": 0.9801499247550964
+        },
+        {
+          "start": 12.7,
+          "end": 12.84,
+          "word": " the",
+          "probability": 0.9824836850166321
+        },
+        {
+          "start": 12.84,
+          "end": 13.16,
+          "word": " giant",
+          "probability": 0.9682400226593018
+        },
+        {
+          "start": 13.16,
+          "end": 13.54,
+          "word": " snakes",
+          "probability": 0.9706557393074036
+        },
+        {
+          "start": 13.54,
+          "end": 13.96,
+          "word": " to",
+          "probability": 0.9952547550201416
+        },
+        {
+          "start": 13.96,
+          "end": 14.24,
+          "word": " pull",
+          "probability": 0.9971365928649902
+        },
+        {
+          "start": 14.24,
+          "end": 14.42,
+          "word": " the",
+          "probability": 0.9836573004722595
+        },
+        {
+          "start": 14.42,
+          "end": 14.72,
+          "word": " truck.",
+          "probability": 0.9792608618736267
+        },
+        {
+          "start": 14.96,
+          "end": 15.24,
+          "word": " But",
+          "probability": 0.977353572845459
+        },
+        {
+          "start": 15.24,
+          "end": 15.38,
+          "word": " if",
+          "probability": 0.985619068145752
+        },
+        {
+          "start": 15.38,
+          "end": 15.48,
+          "word": " you",
+          "probability": 0.9956071972846985
+        },
+        {
+          "start": 15.48,
+          "end": 15.7,
+          "word": " got",
+          "probability": 0.9852801561355591
+        },
+        {
+          "start": 15.7,
+          "end": 16.18,
+          "word": " Dwayne",
+          "probability": 0.9370467066764832
+        },
+        {
+          "start": 16.18,
+          "end": 16.28,
+          "word": " the",
+          "probability": 0.18723531067371368
+        },
+        {
+          "start": 16.28,
+          "end": 16.52,
+          "word": " Rock",
+          "probability": 0.9102101922035217
+        },
+        {
+          "start": 16.52,
+          "end": 17.0,
+          "word": " Johnson",
+          "probability": 0.9765991568565369
+        },
+        {
+          "start": 17.0,
+          "end": 17.34,
+          "word": " to",
+          "probability": 0.9790341258049011
+        },
+        {
+          "start": 17.34,
+          "end": 17.56,
+          "word": " tow",
+          "probability": 0.9940469264984131
+        }
+      ]
+    },
+    {
+      "start": 17.56,
+      "end": 21.54,
+      "text": "the trucks, you would need just one and a half of him to get them rolling.",
+      "avg_logprob": -0.22889446644555955,
+      "no_speech_prob": 9.452635072251803e-13,
+      "words": [
+        {
+          "start": 17.56,
+          "end": 17.74,
+          "word": " the",
+          "probability": 0.7466788291931152
+        },
+        {
+          "start": 17.74,
+          "end": 18.06,
+          "word": " trucks,",
+          "probability": 0.9873107671737671
+        },
+        {
+          "start": 18.52,
+          "end": 18.6,
+          "word": " you",
+          "probability": 0.9944323897361755
+        },
+        {
+          "start": 18.6,
+          "end": 18.76,
+          "word": " would",
+          "probability": 0.9834020137786865
+        },
+        {
+          "start": 18.76,
+          "end": 18.94,
+          "word": " need",
+          "probability": 0.9814590215682983
+        },
+        {
+          "start": 18.94,
+          "end": 19.18,
+          "word": " just",
+          "probability": 0.9867444634437561
+        },
+        {
+          "start": 19.18,
+          "end": 19.52,
+          "word": " one",
+          "probability": 0.8657436370849609
+        },
+        {
+          "start": 19.52,
+          "end": 19.62,
+          "word": " and",
+          "probability": 0.9583399295806885
+        },
+        {
+          "start": 19.62,
+          "end": 19.74,
+          "word": " a",
+          "probability": 0.9870359301567078
+        },
+        {
+          "start": 19.74,
+          "end": 19.96,
+          "word": " half",
+          "probability": 0.9989758729934692
+        },
+        {
+          "start": 19.96,
+          "end": 20.18,
+          "word": " of",
+          "probability": 0.9968404769897461
+        },
+        {
+          "start": 20.18,
+          "end": 20.44,
+          "word": " him",
+          "probability": 0.972513735294342
+        },
+        {
+          "start": 20.44,
+          "end": 20.7,
+          "word": " to",
+          "probability": 0.9922084212303162
+        },
+        {
+          "start": 20.7,
+          "end": 20.94,
+          "word": " get",
+          "probability": 0.9980462789535522
+        },
+        {
+          "start": 20.94,
+          "end": 21.18,
+          "word": " them",
+          "probability": 0.9955040812492371
+        },
+        {
+          "start": 21.18,
+          "end": 21.54,
+          "word": " rolling.",
+          "probability": 0.9987671375274658
+        }
+      ]
+    }
+  ],
+  "low_confidence_words": [
+    {
+      "start": 4.28,
+      "end": 4.66,
+      "word": " 5",
+      "probability": 0.39408567547798157
+    },
+    {
+      "start": 16.18,
+      "end": 16.28,
+      "word": " the",
+      "probability": 0.18723531067371368
+    },
+    {
+      "start": 17.56,
+      "end": 17.74,
+      "word": " the",
+      "probability": 0.7466788291931152
+    }
+  ]
+}

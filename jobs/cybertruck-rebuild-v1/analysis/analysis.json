@@ -1,0 +1,22 @@
+{
+  "created": "2026-11-05T15:05:01.692330+03:00",
+  "source": "C:\\Users\\birlik grup\\Documents\\Codex\\tools\\social-studio\\jobs\\cybertruck-rebuild-v1\\reference-proxy.mp4",
+  "video": {
+    "width": 540,
+    "height": 960,
+    "fps": "30000/1001",
+    "duration": 22.155467,
+    "frames": 664,
+    "has_audio": false,
+    "codec": "h264"
+  },
+  "scene_count": 1,
+  "speech_requested": false,
+  "transcript_exists": false,
+  "scene_detector": {
+    "engine": "PySceneDetect AdaptiveDetector",
+    "adaptive_threshold": 3.0,
+    "min_content_val": 3.0,
+    "min_scene_seconds": 0.3
+  }
+}

@@ -23,3 +23,9 @@ node render/video.cjs ../renders/cybertruck-1080p.mp4
 ```
 
 [Kullanım kılavuzu](KULLANIM-KILAVUZU.md) ve [üretim akışı](WORKFLOWS.md), bu bilgisayardaki mevcut kurulum ve isteğe bağlı entegrasyonlar hakkında ayrıntı içerir.
+
+## Yedekler ve devam etme
+
+[Kaldığımız yer](PROJECT-STATE.md) dosyası kararları, hedefleri ve sonraki işleri içerir. `agent-skills/` altında Codex ve Claude becerilerimizin kopyaları vardır. Cybertruck referansının analiz ve karşılaştırma çıktıları iş klasöründe saklanır.
+
+Çalışmanın bağımsız özel deposu [cybertruck-threejs-study](https://github.com/kubilaytinmaz/cybertruck-threejs-study). Bu deponun `cybertruck-v5-backup` sürümünde referans, son master, önizleme ve rig dosyası için doğrulanabilir medya yedeği bulunur. Geri yükleme komutları o deponun README'sinde yer alır.

@@ -286,6 +286,31 @@ class StudioChecks(unittest.TestCase):
             with self.assertRaises(ValueError):
                 analyze_posts([row], source)
 
+    def test_20_offline_analysis_without_optional_engines(self):
+        source = self.work / 'offline-input.mp4'
+        studio.run([studio.FFMPEG, '-v', 'error', '-n', '-f', 'lavfi', '-i',
+                    'testsrc2=size=96x160:rate=10:duration=1', '-f', 'lavfi', '-i',
+                    'sine=frequency=440:duration=1', '-c:v', 'libx264', '-c:a', 'aac', '-shortest', source], capture=True)
+        out = self.work / 'offline-example'
+        with patch('social_studio.ocr.recognizer', return_value=(None, None, ['engines absent'])), \
+             patch('social_studio.audio_analysis._spectral_speech_intervals', side_effect=ImportError('scipy absent')), \
+             patch('social_studio.audio_analysis.KWeighted', side_effect=ImportError('scipy absent')), \
+             patch('social_studio.audio_analysis.analyze_rhythm', side_effect=ImportError('librosa absent')), \
+             patch('faster_whisper.WhisperModel', side_effect=OSError('model not cached')) as whisper, \
+             patch('socket.create_connection', side_effect=AssertionError('No network in tests')):
+            studio.analyze(str(source), out)
+        self.assertTrue(whisper.call_args.kwargs['local_files_only'])
+        for filename in ['analysis.json', 'onscreen_text.json', 'audio_analysis.json',
+                         'visual_analysis.json', 'summary.json', 'summary.md', 'REBUILD.md']:
+            self.assertTrue((out / filename).is_file(), filename)
+        manifest = studio.load(out / 'analysis.json')
+        self.assertIn('skipped', manifest['measurements']['ocr'])
+        self.assertIn('skipped', manifest['transcription'])
+        audio = studio.load(out / 'audio_analysis.json')
+        self.assertIn(len(audio['rms_curve']), [10, 11])  # AAC may add a partial tail bin.
+        self.assertTrue(audio['loudness_curve'])
+        self.assertIn('skipped', audio['rhythm'])
+
     def test_19_audio_comparison_skips_warmup_bins_and_text_delta(self):
         from social_studio.comparison_details import audio_comparison, timeline_comparison
         import numpy as np

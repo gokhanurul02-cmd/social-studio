@@ -182,6 +182,10 @@ def main():
     a.add_argument('source'); a.add_argument('--out',required=True); a.add_argument('--brand',default='')
     a.add_argument('--platform',default='instagram'); a.add_argument('--scheduled-at')
     g = a.add_mutually_exclusive_group(); g.add_argument('--caption'); g.add_argument('--caption-file')
+    a = s.add_parser('stylecheck', help='Referans stil (style.json/analiz) ile yeni video analizlerini metrik bazında karşılaştır')
+    a.add_argument('reference'); a.add_argument('candidates', nargs='+'); a.add_argument('--out')
+    a.add_argument('--thresholds', help='Eşik değiştiren JSON'); a.add_argument('--no-measure', action='store_true')
+    a.add_argument('--strict', action='store_true', help='Bir metrik kalırsa çıkış kodu 1')
     a = p.parse_args()
     if a.command == 'doctor': doctor()
     elif a.command == 'analyze':
@@ -208,5 +212,8 @@ def main():
     elif a.command == 'inbox': inbox(a)
     elif a.command == 'launch': launch(a)
     elif a.command == 'handoff': handoff(a)
+    elif a.command == 'stylecheck':
+        from .stylecheck import stylecheck_cli
+        stylecheck_cli(a)
 
 

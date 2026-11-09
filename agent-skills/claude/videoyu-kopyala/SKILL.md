@@ -1,57 +1,69 @@
 ---
 name: videoyu-kopyala
-description: Rebuild a supplied reference video as editable code with matching composition, motion, timing and sound. Use for copying or recreating a specific video, not for making a new video from a general content brief.
+description: Verilen referans videoyu Social Studio ile düzenlenebilir kod olarak (Three.js, Remotion, HyperFrames/GSAP) aynı kompozisyon, hareket, zamanlama ve sesle yeniden kurar ve ölçülmüş bir MP4 teslim eder. Belirli bir videonun aynısını yapma isteği için kullan; genel bir brief'ten yeni video için değil.
 ---
 
 # Referans videoyu yeniden kur
 
-The user wants to reproduce videos people make with Claude Code. Success is fidelity to the
-actual supplied reference, not a generic social promo, an inspired redesign or a tools demo.
-The earlier Social Studio demo was rejected and is not an approved visual reference.
+Başarı ölçütü referansa sadakattir. Genel bir tanıtım videosu, "ondan ilham alan" bir tasarım veya araç demosu başarı değildir. Eski Social Studio demosu reddedildi, görsel referans olarak kullanma.
 
-If no reference video or usable link is supplied, ask for that input in one short message.
-Do not generate a substitute example or claim the workflow has proved reference fidelity.
-If the reference comes with a public source repository, inspect and reuse the relevant original
-project/assets when available rather than guessing how it was built.
+## 1. Analiz
 
-## Work from the video
+- `jobs/<is>/ANALIZ.md`, `SPEC.md` ve `style.json` yoksa önce `video-analiz` skill'ini baştan sona uygula. Varsa yeniden analiz etme, onları kullan.
+- Referansla birlikte kaynak proje veya repo verildiyse önce onu incele ve asset'lerini kullan. Piksellerden tahmin, son çare.
 
-Local tools: `C:/Users/birlik grup/Documents/Codex/tools/social-studio/social.cmd`.
-Invoke its quoted full path in PowerShell. Its directory has Python, FFmpeg, HyperFrames,
-Remotion/React, GSAP, transcription and image-comparison tools already installed.
-Three.js r187 (npm `three@0.187.0`) is also installed there, including addons under
-`three/examples/jsm/`. Use it for 3D references when appropriate; keep core and addons on the
-same pinned release. For video exports, drive scene state from an explicit seek(time/frame),
-not from wall-clock animation. Its real WebGL2 render and addon imports have been checked.
+## 2. Motor ve proje
 
-1. Run `analyze REFERENCE --out NEW_JOB/analysis`. Read the actual dimensions, rational fps,
-   duration, scene list, transcript and frame sheet. Open the extracted frames. The sheet is
-   only an overview: extract consecutive native-rate frames with local FFmpeg around text
-   changes, entrances, exits and transitions. The actual video outranks detected cuts.
-2. Record the reference's shot boundaries, text, fonts, sizes/positions, spacing, palette,
-   assets, motion direction, easing, camera moves and audio accents. Label uncertain measurements.
-   Keep reference dimensions, frame rate, duration and sound unless the user asks to change them.
-3. Select the renderer from the reference/source: Remotion/React, HyperFrames/GSAP, canvas or
-   Three.js as appropriate. Do not select a visual template merely because it is installed.
-   Official format guidance is under `C:/Users/birlik grup/.agents/skills/hyperframes/` and
-   `C:/Users/birlik grup/.agents/skills/remotion-best-practices/`.
-4. Match the first representative scene before extending its treatment across the film.
-   This is an internal comparison step, not a mandatory approval pause. Rebuild typography,
-   shapes, layouts and motion as editable source. Photographic footage can remain media assets.
-   Do not play the original full frame underneath and call that a reconstructed animation.
-5. Preserve the reference audio for an exact remake. Do not invent narration, music, effects,
-   headlines, brand styling or a CTA. Apply saved brand styles only when adaptation is requested.
-   Missing source assets should be identified; disclose any necessary approximation.
-6. Render a real MP4. Use `compare REFERENCE OUTPUT --out NEW_JOB/comparison`, inspect the
-   source/output/difference images and the native-resolution moments that matter. Check text
-   placement and glyphs, transitions frame by frame, and audio timing; MAE alone cannot certify
-   similarity. Correct visible mismatches and render a new version before delivery.
+- Motoru ANALIZ.md'deki üretim motoru tahminine göre seç. Kurulu diye bir şablonu seçme.
+  - 3D sahne, kalabalık, kamera uçuşu → Three.js r187 (`three@0.187.0`, araç kökündeki `node_modules`).
+  - Tipografi ve kart ağırlıklı motion graphics → HyperFrames/GSAP (`social hf init "jobs/<is>/project" --skip-skills --non-interactive`) veya Remotion.
+  - Gerçek çekim → orijinal ya da yeni çekilmiş görüntü gerekir. Kullanıcıya hangi görüntülerin eksik olduğunu söyle.
+- Proje kuralları:
+  - Bütün sahne, kamera ve animasyon durumu `seek(zaman)` ile hesaplanır, saat tabanlı animasyon yok.
+  - Shot zamanları ve kamera anahtarları tek bir dosyada (ör. `src/shots.js`) tablo olarak durur, SPEC.md'deki shot tablosuyla birebir eşleşir.
+  - Fontlar, GSAP ve modeller yerel dosya. Render sırasında CDN'e bağımlılık yok.
+  - Örnek yapı: `jobs/cybertruck-rebuild-v1/project` (main.js, shots.js, render/stills.cjs, render/video.cjs). Daha küçük ve temiz iskelet (prosedürel karakter, instanced kalabalık, kart çevirme + whip shader'ı, style.json'dan okunan altyazı stili, `video.cjs OUT AUDIO`): `jobs/20261109-agent5-style-test/project`.
+  - Altyazı stilini koda gömme: `data/caption-style.json` style.json'dan birebir (font, `size_ratio`, `baseline_y_ratio`, dolgu, kontur, gölge); zamanlar `data/captions.json`.
 
-Deliver the playable MP4, editable project and a short account of remaining differences.
-If an asset or method prevents a close match, say exactly what is missing. A dependency check,
-a generic demo or a successful export does not prove that the requested video was reproduced.
+## 3. Temsilî sahne önce
 
-Detailed local CLI usage is in
-`C:/Users/birlik grup/Documents/Codex/tools/social-studio/WORKFLOWS.md`.
-For this request use only reference analysis/reconstruction sections. Postiz, publishing,
-content calendars and account analytics are outside the current stage.
+1. En karakteristik tek sahneyi seç (genelde hook).
+2. Onu kur, 540p still al: `node render/stills.cjs ../preview 540 960 2 t<zaman>,...` veya `social hf snapshot "<proje>" --at ...`.
+3. Aynı anların referans karelerini yan yana koy. Kompozisyon, renk, ışık, kamera yüksekliği, lens hissi ve altyazı konumunu karşılaştır. Farkları düzelt.
+4. Bu sahne tutmadan diğer sahnelere geçme.
+
+## 4. Filmi tamamla
+
+- Shot tablosunu sırayla kur. Her shot bitince o aralığın 540p kısa test render'ını al ve referansla karşılaştır.
+- Altyazılar referansla aynı karede değişmeli, font, boyut, kontur ve konum style.json'a uymalı.
+- Aynısı isteniyorsa referans sesini tek, zamanlanmış bir ses kaynağı olarak koru. Anlatım, müzik, başlık, marka veya CTA uydurma.
+- Eksik asset'leri (karakter, model, doku) açıkça belirle. Yerine koyduğun her şeyi `ASSETS.md` dosyasına kaynağı ve lisansıyla yaz.
+- Orijinal videoyu tam kare arka plan yapıp "yeniden kuruldu" deme.
+
+## 5. Render ve ölçüm
+
+```
+node render/video.cjs ../renders/<ad>-v<N>.mp4          (Three.js)
+social render "<proje>" --out "jobs/<is>/final-v<N>.mp4"  (HyperFrames)
+social compare "<referans>" "<render>" --out "jobs/<is>/comparison-v<N>"
+social check "<render>"
+```
+
+- Stil metriklerini ölç (piksel farkından bağımsız): `social analyze "<render>" --out "jobs/<is>/analysis-v<N>"` sonra `social stylecheck "jobs/<is>/style.json" "jobs/<is>/analysis-v<N>" [önceki sürümler...] --out "jobs/<is>/stylecheck-v<N>"`. Rapor altyazı konum/boyut/renk, grup süresi, geçiş/s ve türleri, kamera aileleri, palet ΔE, LUFS/true peak ve konuşma temposunu metrik bazında PASS/FAIL verir; benzerlik yüzdesi yoktur. `style.json` yanında `analysis/` dursun ki iki taraf aynı otomatik ölçümle karşılaştırılsın.
+- Yeniden kurmada loudness referansla aynı olmalıysa referans sesi korunur; ama referans clip ediyorsa (ör. +1.5 dBTP) stylecheck'in teslim hedefi satırı FAIL verir — bunu REVIEW.md'de bilinçli fark olarak yaz.
+- `comparison/index.html` dosyasındaki en kötü anları ve bütün geçişleri kare kare incele. MAE tek başına benzerlik kanıtı değil. Araç güncelse SSIM, ses gecikmesi ve kesim/metin zaman sapmasına da bak.
+- Görülen farkları düzelt, `v<N+1>` olarak yeniden render et. Hiçbir sürümün üzerine yazma.
+- Final varsayılan olarak 1080×1920. 4K sadece kullanıcı isterse. Tam render'ı gereksiz tekrarlama, önce değişen aralıkları kısa render et.
+
+## Sık hatalar
+
+- Tam render'dan önce 540p still + contact sheet döngüsü atlanırsa kadraj hataları (kamera kalabalığın içinde, özne kesik) ancak 1080p'de görülür.
+- Tek ease-out ile çok uzun geri çekiliş analizciye fazladan `zoom_burst` olarak görünür; referansta yoksa ara kamera anahtarı ekle.
+- Büyük düz renk alanı kadrajı doldurursa geçiş detektörü yanlış "wipe" verir; stylecheck "referansta yok" notuyla gösterir.
+- Yeni anlatım gerekiyorsa (uyarlama): Edge TTS + kelime sınırları (`jobs/20261109-agent5-style-test/project/tools/tts.py`), ücretli sağlayıcı yalnız kullanıcı isterse.
+
+## 6. Teslim
+
+`video-analiz` skill'inin `references/kalite-kontrol.md` dosyasındaki "Yeniden kurma" listesini işaretle. `REVIEW.md` yaz: neyin birebir eşleştiği, neyin yaklaşık olduğu, kalan farklar ve sebepleri, karşılaştırma sayıları ve sürüm sürüm STYLECHECK.md sonucu.
+
+Kullanıcıya oynatılabilir MP4'ü, düzenlenebilir projenin yolunu ve kalan farkların kısa listesini ver. Bağımlılık kontrolü, genel bir demo veya başarılı bir export, videonun yeniden kurulduğunu kanıtlamaz.

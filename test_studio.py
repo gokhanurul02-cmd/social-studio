@@ -211,6 +211,25 @@ class StudioChecks(unittest.TestCase):
         report = analyze_audio(self.source, studio.video_info(self.source), self.work / 'silent.json')
         self.assertIn('skipped', report)
 
+    def test_15_visual_palette_motion_and_sampling_limit(self):
+        from social_studio.visual import palette, motion_estimate
+        import cv2
+        import numpy as np
+        image = np.zeros((160, 96, 3), np.uint8)
+        image[:, :, 2] = 255
+        colors = palette(image)
+        self.assertAlmostEqual(sum(c['ratio'] for c in colors['colors']), 1)
+        self.assertEqual(colors['colors'][0]['hex'], '#ff0000')
+        rng = np.random.default_rng(123)
+        gray = rng.integers(0, 255, (160, 96), dtype=np.uint8)
+        moved = cv2.warpAffine(gray, np.float32([[1, 0, 3], [0, 1, 0]]), (96, 160))
+        motion = motion_estimate(gray, moved, .5)
+        self.assertEqual(motion['camera_estimate'], 'pan_right')
+        out = self.work / 'limited'
+        studio.analyze(str(self.source), out, speech=False, max_frames=2)
+        self.assertLessEqual(len(studio.load(out / 'frames.json')), 2)
+        self.assertTrue((out / 'visual_analysis.json').is_file())
+
 
 if __name__ == '__main__':
     os.environ['PYTHONUTF8']='1'

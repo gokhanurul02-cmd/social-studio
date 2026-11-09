@@ -23,8 +23,8 @@ from fractions import Fraction
 from .media import *
 from .audio import *
 def analyze(value, out=None, speech=True, model='large-v3-turbo', language='tr', interval=1.0,
-            scene_threshold=3.0, min_scene_seconds=0.3, ocr_fps=4.0, ocr_threshold=3.0):
-    if not (0 < ocr_fps <= 30 and ocr_threshold >= 0):
+            scene_threshold=3.0, min_scene_seconds=0.3, ocr_fps=4.0, ocr_threshold=3.0, max_frames=120):
+    if not (0 < ocr_fps <= 30 and ocr_threshold >= 0 and max_frames >= 1):
         raise ValueError('ocr-fps must be in (0,30], ocr-threshold >= 0')
     job = Path(out).resolve() if out else ROOT / 'jobs' / f'{stamp()}-{slug(Path(value).stem)}'
     if job.exists() and any(job.iterdir()):
@@ -47,12 +47,15 @@ def analyze(value, out=None, speech=True, model='large-v3-turbo', language='tr',
     frames = job / 'frames'
     frames.mkdir(exist_ok=True)
     upper = max(0, info['duration'] - 1 / fps)
-    step = max(interval, info['duration'] / 36)
+    step = max(interval, info['duration'] / max_frames)
     sample_times = {round(min(i * step, upper), 6) for i in range(max(1, math.ceil(info['duration'] / step)))}
     for scene in scenes:
         # At each cut inspect the actual consecutive frames, not only a uniform sheet.
         for offset in (-2, -1, 0, 1, 2):
             sample_times.add(round(min(upper, max(0, scene['start'] + offset / fps)), 6))
+    sample_times = sorted(sample_times)
+    if len(sample_times) > max_frames:
+        sample_times = [sample_times[round(i * (len(sample_times)-1) / max(1,max_frames-1))] for i in range(max_frames)]
     entries = []
     for i, t in enumerate(sorted(sample_times)):
         file = frames / f'{i:04d}-{t:.6f}.jpg'
@@ -86,6 +89,11 @@ def analyze(value, out=None, speech=True, model='large-v3-turbo', language='tr',
     audio_report = analyze_audio(source, info, job / 'audio_analysis.json', scenes, transcript)
     manifest['measurements']['audio'] = {k: audio_report[k] for k in ['method', 'confidence', 'skipped'] if k in audio_report}
     manifest['measurements']['audio']['file'] = 'audio_analysis.json'
+    from .visual import analyze_visual
+    visual_report = analyze_visual(source, info, scenes, entries, job / 'visual_analysis.json')
+    manifest['measurements']['visual'] = {k: visual_report[k] for k in ['method', 'confidence', 'skipped'] if k in visual_report}
+    manifest['measurements']['visual']['file'] = 'visual_analysis.json'
+    manifest['sampling'] = {'max_frames': max_frames, 'actual_frames': len(entries)}
     save(job / 'analysis.json', manifest)
     (job / 'REBUILD.md').write_text(
         f'# Referans yeniden kurma\n\nKaynak: {source}\n\n'

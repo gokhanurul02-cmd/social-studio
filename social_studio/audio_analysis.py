@@ -879,8 +879,12 @@ def analyze_audio(source, info, output, scenes=(), transcript=None, transitions=
         if transcript and transcript.get('segments'):
             spans, detection = speech_intervals(transcript), 'whisper_word_timings'
         else:
-            spans = _spectral_speech_intervals(samples)
-            detection = 'spectral_heuristic_syllabic_modulation (low confidence, no transcript)'
+            try:
+                spans = _spectral_speech_intervals(samples)
+                detection = 'spectral_heuristic_syllabic_modulation (low confidence, no transcript)'
+            except ImportError as exc:
+                spans, detection = [], 'unavailable: no transcript or optional spectral backend'
+                report['classification']['speech_detection'] = {'skipped': str(exc)}
         kw = None
         try:
             try:

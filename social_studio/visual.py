@@ -204,6 +204,11 @@ def camera_analysis(sig, scenes, transitions, min_segment=0.3):
             scene_of[f] = idx
     # continuity zones: split at scene boundaries and at bursts that hide a content change
     splits = {tr['peak_frame'] for tr in transitions if tr.get('content_change') and not tr['edit_boundary']}
+    # Preserve short in-shot whip bursts: smoothing/minimum-run merging must not
+    # absorb a measured burst into the static intervals on either side.
+    for tr in transitions:
+        if tr.get('type') == 'whip' and not tr['edit_boundary']:
+            splits.update([tr['start_frame'], tr['end_frame'] + 1])
     zone_of, zone = [0] * n, 0
     for f in range(n):
         if f and (scene_of[f] != scene_of[f - 1] or f in splits):

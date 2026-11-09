@@ -1,10 +1,10 @@
 # Agent production workflows
 
-Tool root: `C:/Users/birlik grup/Documents/Codex/tools/social-studio`.
+Tool root: `.`.
 PowerShell reliable entrypoint (also works before PATH refresh):
 
 ```powershell
-& 'C:/Users/birlik grup/Documents/Codex/tools/social-studio/social.cmd' --help
+& './social.cmd' --help
 ```
 
 `social` is a local tool CLI. Codex or Claude supplies editorial reasoning and writes editable
@@ -42,7 +42,7 @@ the user asks for the same video. If the user asks to adapt it, retain the usefu
 change the requested content. Write `SPEC.md` with measured shot boundaries and layer/source table.
 For an exact remake, the supplied reference outranks saved brand templates. Use existing brand
 skills only when the user requests a brand adaptation. Those reference sources live in
-`C:/Users/birlik grup/.codex/skills/`.
+`agent-skills/codex/`.
 
 Choose the engine from the actual reference/source (Remotion, HyperFrames, canvas, Three.js),
 not from an installed template. Match a representative scene before extending it to the film.
@@ -95,7 +95,7 @@ not invented replacements. Existing brand skills supply approved fonts/layouts.
 Create a job; write script and SPEC; record voice once if requested; derive actual speech timing
 with `social transcribe`; compose to the voice. Follow the same check/snapshot/render workflow.
 Use Remotion instead when React/source compatibility calls for it. Read
-`C:/Users/birlik grup/.agents/skills/remotion-best-practices/SKILL.md`; `social remotion` wraps its CLI.
+`agent-skills/codex/remotion-best-practices/SKILL.md`; `social remotion` wraps its CLI.
 
 ## Voice and sound
 

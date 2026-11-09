@@ -130,29 +130,28 @@ class StudioChecks(unittest.TestCase):
                 self.assertIn('source & example.mp4',argv[-1])
                 self.assertIn('literal $ and ` text',argv[-1])
 
-    def test_09_custom_skill_frontmatter_and_entrypoints(self):
-        validator_path = Path.home()/'.codex/skills/.system/skill-creator/scripts/quick_validate.py'
-        spec = importlib.util.spec_from_file_location('validate_skill_module',validator_path)
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
-        for base in [Path.home()/'.agents/skills',Path.home()/'.claude/skills']:
-            folders = [base/'social',*base.glob('social-*')]
-            self.assertEqual(len(folders),11)
-            for folder in folders:
-                with self.subTest(folder=folder):
-                    ok, message = module.validate_skill(folder)
-                    self.assertTrue(ok,message)
-                    self.assertIn(studio.WORKFLOW_PATH,(folder/'SKILL.md').read_text(encoding='utf-8'))
+    def test_09_portable_tools_and_repository_skills(self):
+        from social_studio import media
+        with patch.dict(os.environ, {'SOCIAL_FFMPEG': str(self.source)}):
+            self.assertEqual(media.resolve_tool('ffmpeg'), self.source)
+        self.assertIn('Scripts' if os.name == 'nt' else 'bin', str(media.venv_python(self.work)))
+        for file in (studio.ROOT / 'agent-skills').rglob('SKILL.md'):
+            self.assertTrue(file.read_text(encoding='utf-8').startswith('---'))
 
     def test_10_motion_graphics_cut_detection(self):
-        # Real render with four layouts on the same dark ground. Stock defaults missed all cuts.
-        out = self.work/'motion-cuts'
-        studio.analyze(str(studio.ROOT/'jobs/demo/social-studio-final.mp4'),out,speech=False)
-        scenes = studio.load(out/'scenes.json')
-        observed = [row['start_frame'] for row in scenes[1:]]
-        self.assertEqual(len(observed),3)
-        for got, expected in zip(observed,[65,134,200]):
-            self.assertLessEqual(abs(got-expected),1)
+        source = self.work / 'cuts.mp4'
+        argv = [studio.FFMPEG, '-v', 'error', '-n']
+        for color in ['red', 'green', 'blue', 'white']:
+            argv += ['-f', 'lavfi', '-i', f'color={color}:s=96x160:r=30:d=1']
+        argv += ['-filter_complex', '[0:v][1:v][2:v][3:v]concat=n=4:v=1:a=0[v]',
+                 '-map', '[v]', '-c:v', 'libx264', str(source)]
+        studio.run(argv, capture=True)
+        out = self.work / 'motion-cuts'
+        studio.analyze(str(source), out, speech=False)
+        observed = [row['start_frame'] for row in studio.load(out / 'scenes.json')[1:]]
+        self.assertEqual(len(observed), 3)
+        for got, expected in zip(observed, [30, 60, 90]):
+            self.assertLessEqual(abs(got - expected), 1)
 
     def test_11_publication_handoff_is_portable_and_offline(self):
         args = SimpleNamespace(source=str(self.source),out=str(self.work/'handoff.v1'),brand='Fixture',

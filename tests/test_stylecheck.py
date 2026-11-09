@@ -61,6 +61,24 @@ def make_analysis(folder, *, duration=10.0, baseline=0.796, size=0.041, lufs=-15
     return folder
 
 
+def comp_samples(n=30, step=0.33, flat=(), edge=(), area=0.22, shot='medium', horizon=0.45):
+    out = []
+    for i in range(n):
+        t = round(0.17 + i * step, 3)
+        out.append({'t': t, 'subject_area': area, 'shot_type': shot, 'blob_count': 12, 'horizon_y': horizon,
+                    'centroid': [0.5, 0.55], 'thirds_distance': 0.2, 'shot_confidence': 0.6,
+                    'flat_fill_ratio': 0.45 if i in flat else 0.02, 'flat_fill_ratio_incl_sky': 0.3,
+                    'edge_cut': i in edge, 'edge_worst': 'bottom', 'edge_contact': {'bottom': 0.6, 'left': 0, 'right': 0, 'top': 0}})
+    return out
+
+
+def add_composition(folder, **kw):
+    samples = comp_samples(**kw)
+    write(folder / 'composition.json', {'schema': 'social-studio.composition.v1', 'duration': 10.0, 'sample_fps': 3.0,
+                                         'samples': samples})
+    return folder
+
+
 def row(report, key, cand=0):
     return next(r for r in report['candidates'][cand]['rows'] if r['metric'] == key)
 
@@ -158,6 +176,51 @@ class StylecheckTests(unittest.TestCase):
         self.assertEqual(sc.count_syllables('5000', 'en'), 3)   # five thousand
         self.assertEqual(sc.guess_language('If you strapped a baby', 'tr'), 'en')
         self.assertLess(sc.delta_e('#ffffff', '#fffeff'), 1)
+
+    def test_composition_flags_fail_with_timestamped_warnings(self):
+        add_composition(self.root / 'ref' / 'analysis', area=0.24)  # reference analysis sits next to style.json
+        write(self.root / 'ref' / 'analysis' / 'analysis.json', {'video': {'width': 1080, 'height': 1920, 'fps': '30000/1001', 'duration': 22.0}})
+        bad = add_composition(make_analysis(self.root / 'bad'), flat=(0, 1, 2), edge=(20, 21, 22))
+        good = add_composition(make_analysis(self.root / 'good'))
+        rep = self.check(bad, good)
+        self.assertEqual(row(rep, 'comp_flat_fill_events', 0)['status'], 'FAIL')
+        self.assertEqual(row(rep, 'comp_edge_cut_events', 0)['status'], 'FAIL')
+        self.assertEqual(row(rep, 'comp_flat_fill_events', 1)['status'], 'PASS')
+        self.assertEqual(row(rep, 'comp_subject_area_median', 1)['status'], 'PASS')
+        warns = rep['candidates'][0]['composition_warnings']
+        self.assertEqual({w['kind'] for w in warns}, {'flat_fill', 'edge_cut'})
+        self.assertRegex(warns[0]['text'], r'^bad 0\.0–1\.\d s flat_fill 0\.45$')
+        self.assertEqual(rep['candidates'][1]['composition_warnings'], [])
+        md = sc.to_markdown(rep)
+        self.assertIn('Kompozisyon – Aday 1', md)
+        self.assertNotIn('similarity', json.dumps(rep).lower())
+
+    def test_composition_distribution_gates(self):
+        add_composition(self.root / 'ref' / 'analysis', area=0.24, shot='medium')
+        write(self.root / 'ref' / 'analysis' / 'analysis.json', {'video': {'width': 1080, 'height': 1920, 'fps': '30000/1001', 'duration': 22.0}})
+        far = add_composition(make_analysis(self.root / 'far'), area=0.55, shot='close')
+        rep = self.check(far)
+        self.assertEqual(row(rep, 'comp_subject_area_median')['status'], 'FAIL')
+        self.assertEqual(row(rep, 'comp_shot_type_share')['status'], 'FAIL')
+        self.assertEqual(row(rep, 'comp_horizon_y')['status'], 'INFO')      # noisy estimate is shown, not gated
+
+    def test_missing_composition_is_skipped_not_failed(self):
+        rep = self.check(make_analysis(self.root / 'plain'))
+        self.assertEqual(row(rep, 'comp_flat_fill_events')['status'], 'SKIP')
+        self.assertEqual(row(rep, 'comp_shot_type_share')['status'], 'SKIP')
+        self.assertEqual(rep['candidates'][0]['verdict'], 'PASS')
+
+    def test_pair_moments_use_beats_and_excerpt_window(self):
+        ref = {'duration_s': {'value': 22.0}, '_beats': [{'start_s': 0, 'end_s': 4, 'role': 'kur'},
+                                                         {'start_s': 4, 'end_s': 8, 'role': 'ödül'},
+                                                         {'start_s': 15, 'end_s': 19, 'role': 'son'}]}
+        short = sc.pair_moments(ref, 10.0, 7)
+        self.assertEqual([m[0] for m in short], ['hook', 'kur', 'ödül'])      # 'son' lies beyond the excerpt
+        self.assertEqual(short[1][1], short[1][2])                           # excerpt: same absolute time
+        full = sc.pair_moments(ref, 22.0, 7)
+        self.assertEqual(len(full), 4)
+        scaled = sc.pair_moments(ref, 11.0 * 2 * 0.9, 7)                      # 19.8 s >= 80 % of 22 -> relative time
+        self.assertAlmostEqual(scaled[1][2], scaled[1][1] * 19.8 / 22.0, places=1)
 
     def test_cli_registration(self):
         import subprocess

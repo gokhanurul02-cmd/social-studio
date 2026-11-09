@@ -557,6 +557,292 @@ def match_fonts(samples, top=3):
                            for s, n in ranked[:top]]}
 
 
+# ------------------------------------------------ kind classification (caption / logo / ...)
+def _key(text):
+    from .ocr import tr_fold
+    return ''.join(c for c in tr_fold(text) if c.isalnum())
+
+
+def _text_similar(a, b):
+    """Fuzzy text identity for repeated, misread overlays (logos read 30 ways)."""
+    import difflib
+    ka, kb = _key(a), _key(b)
+    if not ka or not kb:
+        return 0.0
+    sm = difflib.SequenceMatcher(None, ka, kb, autojunk=False)
+    ratio = sm.ratio()
+    block = sm.find_longest_match(0, len(ka), 0, len(kb)).size
+    shorter = min(len(ka), len(kb))
+    contain = block / shorter if shorter >= 4 else 0.0
+    return max(ratio, contain if block >= 4 else 0.0)
+
+
+def _geom(rec):
+    x0, y0, x1, y1 = rec['bbox']
+    return {'cx': (x0 + x1) / 2, 'cy': (y0 + y1) / 2, 'w': x1 - x0, 'h': y1 - y0}
+
+
+def _place_similar(a, b):
+    ga, gb = _geom(a), _geom(b)
+    ix = min(a['bbox'][2], b['bbox'][2]) - max(a['bbox'][0], b['bbox'][0])
+    iy = min(a['bbox'][3], b['bbox'][3]) - max(a['bbox'][1], b['bbox'][1])
+    inter = max(0.0, ix) * max(0.0, iy)
+    union = ga['w'] * ga['h'] + gb['w'] * gb['h'] - inter
+    iou = inter / union if union > 0 else 0.0
+    near = abs(ga['cx'] - gb['cx']) < 0.1 and abs(ga['cy'] - gb['cy']) < 0.06
+    return iou >= 0.3 or near
+
+
+def speech_overlap(text, start, end, words, pad=1.5):
+    """Share of the record's words (>=3 letters) that were spoken near the same time.
+    None when there is no transcript or the text has no usable word."""
+    import difflib
+    toks = [t for t in (_key(w) for w in text.split()) if len(t) >= 3]
+    if not words or not toks:
+        return None
+    spoken = [_key(w) for w, a, b in words if b >= start - pad and a <= end + pad]
+    spoken = [w for w in spoken if w]
+    if not spoken:
+        return 0.0
+    joined = ''.join(spoken)
+    hit = 0
+    for t in toks:
+        if t in spoken or t in joined or any(len(w) >= 4 and w in t for w in spoken) or any(difflib.SequenceMatcher(None, t, w).ratio() >= 0.8 for w in spoken):
+            hit += 1
+    return hit / len(toks)
+
+
+def _union_frames(intervals):
+    total, last_end = 0, -1
+    for a, b in sorted(intervals):
+        a = max(a, last_end + 1)
+        if b >= a:
+            total += b - a + 1
+            last_end = b
+    return total
+
+
+def _best_text(members):
+    """Medoid of the variants: the reading most similar to all others, weighted by
+    OCR confidence and how long it was on screen."""
+    best, best_score = members[0], -1.0
+    for m in members:
+        score = sum(_text_similar(m['text'], o['text']) * o['confidence'] * o['duration_frames'] for o in members)
+        score *= m['confidence'] * (1 + 0.15 * min(len(_key(m['text'])), 20) / 20)
+        if score > best_score:
+            best, best_score = m, score
+    return best
+
+
+def _merge_adjacent(records, fps):
+    """Back-to-back readings of one spot whose text is nearly identical are one overlay
+    read twice (the OCR frame changed, the caption did not): keep the best reading."""
+    out = []
+    for r in sorted(records, key=lambda r: (r['region'], r['start_frame'])):
+        prev = out[-1] if out else None
+        if prev and prev['region'] == r['region'] and r['start_frame'] - prev['end_frame'] <= 2                 and _place_similar(prev, r) and _text_similar(prev['text'], r['text']) >= 0.6                 and r['text'].strip() and prev['text'].strip():
+            pick = max((prev, r), key=lambda x: x['confidence'] * len(_key(x['text'])))
+            variants = list(prev.get('variants') or [{'text': prev['text'], 'count': 1}])
+            variants.append({'text': r['text'], 'count': 1})
+            merged = dict(pick)
+            merged.update(start=prev['start'], start_frame=prev['start_frame'], end=r['end'],
+                          end_frame=r['end_frame'], variants=variants,
+                          merged_records=prev.get('merged_records', 1) + 1)
+            merged['duration_frames'] = merged['end_frame'] - merged['start_frame'] + 1
+            out[-1] = merged
+        else:
+            out.append(r)
+    return out
+
+
+def classify_kinds(records, regions, fps, total_frames, words=None):
+    """Assign kind (caption / title / logo / watermark / label / scene_text) and merge
+    repeated look-alike records at one spot into a single logo/watermark record.
+    Pure function of the records, so it is testable without video or OCR."""
+    records = _merge_adjacent(records, fps)
+    n = len(records)
+    if not n:
+        return []
+    total = max(1, total_frames)
+    parent = list(range(n))
+
+    def find(i):
+        while parent[i] != i:
+            parent[i] = parent[parent[i]]
+            i = parent[i]
+        return i
+
+    def union(i, j):
+        parent[find(i)] = find(j)
+
+    sim = {}
+    for i in range(n):
+        for j in range(i + 1, n):
+            if not _place_similar(records[i], records[j]):
+                continue
+            s = _text_similar(records[i]['text'], records[j]['text'])
+            sim[i, j] = s
+            if s >= 0.55:
+                union(i, j)
+    groups = {}
+    for i in range(n):
+        groups.setdefault(find(i), []).append(i)
+
+    def geometry_ok(idx):
+        gs = [_geom(records[i]) for i in idx]
+        spread = max(g['cx'] for g in gs) - min(g['cx'] for g in gs), max(g['cy'] for g in gs) - min(g['cy'] for g in gs)
+        return spread[0] < 0.2 and spread[1] < 0.08
+
+    def trim(idx):
+        gs = [_geom(records[i]) for i in idx]
+        mx, my = statistics.median(g['cx'] for g in gs), statistics.median(g['cy'] for g in gs)
+        return [i for i, g in zip(idx, gs) if abs(g['cx'] - mx) <= 0.12 and abs(g['cy'] - my) <= 0.05]
+
+    logo_groups = []
+    for root, idx in groups.items():
+        idx = trim(idx) if len(idx) >= 3 else idx
+        members = [records[i] for i in idx]
+        spans = [(m['start_frame'], m['end_frame']) for m in members]
+        first, last = min(a for a, _ in spans), max(b for _, b in spans)
+        covered = _union_frames(spans)
+        density = covered / max(1, last - first + 1)
+        span_share = (last - first + 1) / total
+        persistent = len(members) >= 3 and span_share >= 0.4 and density >= 0.5 and geometry_ok(idx)
+        solo = len(members) <= 2 and covered / total >= 0.7 and geometry_ok(idx)
+        if persistent or solo:
+            logo_groups.append(idx)
+    # weak look-alikes at the same spot are misreadings of the same logo
+    claimed = {i for idx in logo_groups for i in idx}
+    for i in range(n):
+        if i in claimed:
+            continue
+        rec = records[i]
+        for idx in logo_groups:
+            ref = _best_text([records[k] for k in idx])
+            if not _place_similar(rec, ref):
+                continue
+            s = _text_similar(rec['text'], ref['text'])
+            if s >= 0.3 or rec['confidence'] < 0.8 or len(_key(rec['text'])) <= 6:
+                idx.append(i)
+                claimed.add(i)
+                break
+    out, consumed = [], set()
+    for idx in logo_groups:
+        members = sorted((records[i] for i in idx), key=lambda r: r['start_frame'])
+        best = _best_text(members)
+        merged = dict(best)
+        spans = sorted((m['start_frame'], m['end_frame']) for m in members)
+        runs = []
+        for a, b in spans:
+            if runs and a <= runs[-1][1] + 1:
+                runs[-1][1] = max(runs[-1][1], b)
+            else:
+                runs.append([a, b])
+        gs = [_geom(m) for m in members]
+        cx = statistics.median(g['cx'] for g in gs)
+        gx = [m['bbox'] for m in members]
+        merged['bbox'] = [float(statistics.median(b[k] for b in gx)) for k in range(4)]
+        corner = (merged['bbox'][1] + merged['bbox'][3]) / 2 < 0.12 or (merged['bbox'][1] + merged['bbox'][3]) / 2 > 0.92
+        small = (merged['bbox'][2] - merged['bbox'][0]) < 0.35
+        edge = cx < 0.3 or cx > 0.7
+        merged['kind'] = 'watermark' if (corner and small and edge) else 'logo'
+        merged['start_frame'], merged['end_frame'] = runs[0][0], runs[-1][1]
+        merged['start'], merged['end'] = runs[0][0] / fps, (runs[-1][1] + 1) / fps
+        merged['duration_frames'] = _union_frames(spans)
+        merged['appearances'] = [{'start_frame': a, 'end_frame': b, 'start': round(a / fps, 4),
+                                  'end': round((b + 1) / fps, 4)} for a, b in runs]
+        variants = Counter(m['text'] for m in members)
+        merged['variants'] = [{'text': t, 'count': c} for t, c in variants.most_common(12)]
+        merged['merged_records'] = len(members)
+        merged['confidence'] = max(m['confidence'] for m in members)
+        merged['confidence_adjusted'] = best.get('confidence_adjusted', best['confidence'])
+        merged['text_confidence_note'] = (f'best of {len(members)} readings (logo animates, OCR varies); '
+                                          'text is the medoid, not guaranteed exact')
+        merged['kind_reason'] = [f'{len(members)} look-alike records at one spot',
+                                 f'on screen {merged["duration_frames"] / total:.0%} of the video']
+        merged['low_confidence'] = len(variants) > 3
+        out.append(merged)
+        consumed.update(idx)
+
+    rest = [records[i] for i in range(n) if i not in consumed]
+    by_region = Counter(r['region'] for r in rest)
+    mode_of = {k: regions[k]['mode'] for k in range(len(regions))}
+    has_speech = bool(words)
+    heads = 0
+    for r in sorted(rest, key=lambda r: r['start_frame']):
+        score, why = 0.0, []
+        overlap = speech_overlap(r['text'], r['start'], r['end'], words) if has_speech else None
+        r['speech_overlap'] = None if overlap is None else round(overlap, 2)
+        if overlap is not None:
+            if overlap >= 0.5:
+                score += 2
+                why.append(f'speech overlap {overlap:.0%}')
+            elif overlap >= 0.25:
+                score += 1
+                why.append(f'speech overlap {overlap:.0%}')
+        mode = mode_of.get(r['region'])
+        if mode in ('light', 'dark'):
+            score += 1.5
+            why.append('fill+outline text mask (overlay style)')
+            if by_region[r['region']] >= 3:
+                score += 0.5
+        st = r.get('style') or {}
+        if st.get('stroke_hex') or st.get('shadow'):
+            score += 1
+            why.append('stroke/shadow')
+        word_n = len(r['text'].split())
+        alpha = sum(c.isalpha() for c in r['text']) / max(1, len(r['text'].replace(' ', '')))
+        if r['confidence'] >= 0.85:
+            score += 1
+        elif r['confidence'] < 0.7:
+            score -= 1.5
+            why.append('low OCR confidence')
+        if word_n <= 8:
+            score += 1
+        else:
+            score -= 2
+            why.append(f'{word_n} words (dense poster-like text)')
+        if r.get('lines', 1) >= 3:
+            score -= 1
+        if alpha < 0.7:
+            score -= 1
+            why.append('mostly digits/symbols')
+        if r['text_height_ratio'] < 0.02:
+            score -= 1
+            why.append('small text')
+        x0, _, x1, _ = r['bbox']
+        if abs((x0 + x1) / 2 - 0.5) < 0.1 or r['text_height_ratio'] >= 0.04:
+            score += 1
+        r['_score'] = score
+        r['kind_reason'] = why
+        r['kind_score'] = round(score, 2)
+        y_mid = (r['bbox'][1] + r['bbox'][3]) / 2
+        x_mid = (x0 + x1) / 2
+        if r['duration_frames'] >= 3 * fps and word_n <= 3 and abs(x_mid - 0.5) > 0.15 \
+                and (x1 - x0) < 0.35 and r['confidence'] >= 0.8 and alpha >= 0.7:
+            kind = 'label'
+            r['kind_reason'].append('small static tag off-centre (location/name tag)')
+        elif has_speech and (overlap or 0) < 0.25 and r['start_frame'] < 0.1 * total and score >= 3.0 \
+                and r['text_height_ratio'] >= 0.04 and y_mid < 0.7 and heads < 2 and word_n <= 6:
+            kind = 'title'
+            heads += 1
+            r['kind_reason'].append('large text at the start with no matching speech')
+        elif score >= 4.0:
+            kind = 'caption'
+        elif score >= 3.0 and not has_speech:
+            kind = 'caption'
+        else:
+            static = r['duration_frames'] >= 1.5 * fps
+            kind = 'label' if (static and word_n <= 3 and (overlap or 0) < 0.25 and r['confidence'] >= 0.8
+                               and r['text_height_ratio'] >= 0.02 and alpha >= 0.7 and score >= 2) else 'scene_text'
+        r['kind'] = kind
+        out.append(r)
+    for r in out:
+        r.pop('_score', None)
+    out.sort(key=lambda r: (r['start_frame'], r['region']))
+    return out
+
+
 # --------------------------------------------------------------- summary
 def style_summary(records, fps, font_report):
     caps = [r for r in records if r['kind'] == 'caption']

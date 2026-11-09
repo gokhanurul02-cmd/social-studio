@@ -204,5 +204,96 @@ class CaptionTimeline(unittest.TestCase):
             self.assertLessEqual(abs(rec['start_frame'] - first), 1)
 
 
+def _rec(start, end, text, bbox, region, conf=0.95, h=0.04, lines=1, fps=30):
+    return {'start': start / fps, 'end': (end + 1) / fps, 'start_frame': start, 'end_frame': end,
+            'duration_frames': end - start + 1, 'text': text, 'bbox': bbox, 'region': region,
+            'confidence': conf, 'text_height_ratio': h, 'lines': lines,
+            'style': {'stroke_hex': '#000000', 'shadow': False, 'words': text.split(), 'case': 'upper',
+                      'fill_hex': '#ffffff', 'stroke_px_ratio': 0.002, 'font_size_ratio': 0.04,
+                      'baseline_y_ratio': 0.8, 'align': 'center'},
+            'animation': {'type': 'cut', 'confidence': 'high'}, 'safe_zone_violation': False,
+            'confidence_flags': [], 'confidence_adjusted': conf}
+
+
+TRANSCRIPT = {'language': 'tr', 'segments': [
+    {'start': 0.0, 'end': 4.0, 'text': 'Tüketmeyin için çok sağlıklı su',
+     'words': [{'word': ' Tüketmeyin', 'start': 0.0, 'end': 1.0}, {'word': ' için', 'start': 1.0, 'end': 1.5},
+               {'word': ' çok', 'start': 1.5, 'end': 2.0}, {'word': ' sağlıklı', 'start': 2.0, 'end': 3.0},
+               {'word': ' su', 'start': 3.0, 'end': 4.0}]}]}
+
+
+class TurkishAndKinds(unittest.TestCase):
+    def test_transcript_correction_and_word_split(self):
+        vocab = ocr.build_vocab(TRANSCRIPT)
+        text, fixes = ocr.correct_text('TUKETMEYIN icin COK', vocab)
+        self.assertEqual(text, 'TÜKETMEYİN için ÇOK')
+        self.assertTrue(all(f['method'] == 'transcript-diacritic' for f in fixes))
+        text, fixes = ocr.correct_text('SAGLIKLISU', vocab)
+        self.assertEqual(text, 'SAĞLIKLI SU')
+        self.assertEqual(fixes[0]['method'], 'transcript-word-split')
+        # unknown words are never invented
+        self.assertEqual(ocr.correct_text('BAMBASKA', vocab)[0], 'BAMBASKA')
+        # no transcript, no change
+        self.assertEqual(ocr.correct_text('TUKETMEYIN', None), ('TUKETMEYIN', []))
+
+    @unittest.skipUnless(ocr.ocr_model_status()['ok'] and ocr.recognizer()[1] is not None,
+                         'latin OCR model not installed')
+    def test_latin_model_reads_turkish_letters(self):
+        import cv2
+        _, rec, _ = ocr.recognizer()
+        self.assertTrue(rec.turkish)
+        img = Image.new('RGB', (1500, 160), 'white')
+        ImageDraw.Draw(img).text((20, 40), 'SAĞLIKSIZ SU TÜKETMEYİN', font=_font(64), fill='black')
+        arr = np.asarray(img)[:, :, ::-1].copy()
+        ys, xs = np.nonzero(arr[:, :, 0] < 128)
+        tight = cv2.copyMakeBorder(arr[ys.min():ys.max() + 1, xs.min():xs.max() + 1], 14, 14, 14, 14,
+                                   cv2.BORDER_CONSTANT, value=(255, 255, 255))
+        text, conf = rec.line(tight)
+        self.assertEqual(ocr.tr_fold(text).replace(' ', ''), 'sagliksizsutuketmeyin')
+        self.assertIn('Ü', text)                       # the Chinese/English vocabulary cannot output this
+        fixed, fixes = ocr.correct_text(text, ocr.build_vocab(TRANSCRIPT), harmony=True)
+        self.assertEqual(fixed, 'SAĞLIKSIZ SU TÜKETMEYİN')   # Ğ via lexicon, İ via vowel harmony
+        self.assertTrue(fixes)
+
+    def test_artifact_cleanup(self):
+        self.assertEqual(ocr.clean_artifacts('| the same thing')[0], 'the same thing')
+        self.assertEqual(ocr.clean_artifacts('to-tow-the-trucks')[0], 'to tow the trucks')
+        self.assertEqual(ocr.clean_artifacts('A-101')[0], 'A-101')
+
+    def test_logo_variants_merge_and_scene_text_split(self):
+        fps, total = 30, 600
+        regions = [{'mode': 'light'}, {'mode': 'edge'}, {'mode': 'light'}]
+        logo_box = [0.27, 0.88, 0.73, 0.97]
+        variants = ['Mudanya SU OTOMATI', 'Mudanga SUSTOMATI', '(Mndawn SILSTOMATI', 'Mudanya', 'Hudaun VNOIGTISI',
+                    'Mudanya SULOTOMATI', 'CMudanya SULSTOMATI', 'udaja']
+        records = [_rec(i * 70, i * 70 + 60, variants[i % len(variants)], logo_box, 2, conf=0.6 + 0.04 * (i % 8))
+                   for i in range(8)]
+        captions = [(0, 'ALPAR YAPI', 0.3), (90, 'HIZMETINIZDE', 0.3), (200, 'KOLAY ODEME', 0.3)]
+        for start, text, y in captions:
+            records.append(_rec(start, start + 60, text, [0.2, y, 0.8, y + 0.05], 0))
+        records.append(_rec(40, 300, 'sumatic HEMEN ARAYIN 0545 3031616 BAGISIKLIK FILTRELENMIS ICECEK MINERALLI SU 25 SANIYE',
+                            [0.1, 0.4, 0.9, 0.7], 1, conf=0.7, h=0.015, lines=3))
+        words = [('alpar', 0.0, 1.0), ('yapı', 1.0, 2.0), ('hizmetinizdedir', 3.0, 4.5), ('ödeme', 7.0, 8.0)]
+        out = C.classify_kinds(records, regions, fps, total, words)
+        kinds = [r['kind'] for r in out]
+        self.assertEqual(kinds.count('logo') + kinds.count('watermark'), 1)
+        logo = [r for r in out if r['kind'] in ('logo', 'watermark')][0]
+        self.assertEqual(logo['merged_records'], 8)
+        self.assertGreaterEqual(len(logo['appearances']), 1)
+        self.assertIn('variants', logo)
+        self.assertEqual(kinds.count('caption'), 3)
+        self.assertEqual(kinds.count('scene_text'), 1)
+        self.assertEqual(len(out), 5)
+        summary = C.style_summary(out, fps, {})
+        self.assertEqual(summary['group_count'], 3)
+
+    def test_changing_texts_in_one_band_stay_captions(self):
+        regions = [{'mode': 'light'}]
+        texts = ['to pull them', 'to pull the truck', 'to tow the trucks', 'to get them', 'you would need', 'you would need']
+        records = [_rec(i * 20, i * 20 + 14, t, [0.25, 0.77, 0.75, 0.81], 0) for i, t in enumerate(texts)]
+        out = C.classify_kinds(records, regions, 30, 400, None)
+        self.assertEqual([r['kind'] for r in out], ['caption'] * 6)
+
+
 if __name__ == '__main__':
     unittest.main()

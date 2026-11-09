@@ -30,6 +30,12 @@ Videonun neden izlendiğini anlatan 3–5 cümle: vaat, gerilim, ödül, döngü
 - Dikkat tutma: ilk 3 s olay yoğunluğu, altyazı grup süresi, sessizlik/boşluk anları:
 - Döngü / paylaşım tetikleyicisi:
 
+## 2c. Kalıp ve kanıtlanmış referanslarla karşılaştırma
+- Hikâye kalıbı: Masal / Bu neden var? / Gerçek olay / Sen karar ver / Kaç tane gerekir (3D ölçek) / diğer (adlandır). Gerekçe: ilk cümle, dönüş cümlesi ("Nasıl mı?", "Değil."), son cümlenin ilk cümleyi kapatıp kapatmadığı.
+- Kelime sayısı ve kelime/sn, konuşma süresi / video süresi oranı (`audio_analysis.json` speech_metrics). Türkçe anlatı ölçüsü: 40–55 sn'de 70–100 kelime, ≈2 kelime/sn, konuşma %60–75.
+- Ekranda tek fikir ilkesi: söylenmeyen ekran metni var mı (onscreen_text ↔ transcript), dev yazı yalnız başta/sonda mı.
+- `jobs/referans-kutuphanesi/` altındaki en yakın tutmuş videoyla 3–5 metrik farkı (`social stylecheck <ref analysis> <bu analysis> --no-measure`): hangi yönde ayrışıyor.
+
 ## 3. Hook (0–3 s)
 - İlk karede ne görünüyor, ilk ses ne:
 - İlk metin / ilk cümle (kelimesi kelimesine):
@@ -65,6 +71,7 @@ Kamera hareketlerini şöyle yaz: "alçak açı, geniş lens hissi, 1.37→1.74 
 - Karakter tasarımı (oran, yüz detayı, animasyon kalitesi):
 - Çevre (zemin, ızgara, gökyüzü, sis), derinlik alanı, hareket bulanıklığı:
 - Kalabalık / tekrar eden öğeler ve yaklaşık sayıları:
+- Kadraj / çekim tipi (`composition.json`'dan, tahmin): çekim tipi dağılımı (geniş/orta/yakın/kalabalık), özne alan oranı medyanı ve IQR, özne konumu (merkez/üçte bir uzaklığı), ufuk çizgisi y oranı. `flags.flat_fill` (düz tek renk blok kadrajı dolduruyor) ve `flags.edge_cut` (özne kareyi taşıyor) olaylarını zaman damgasıyla yaz; hata sayma, kasıtlı yakın planları ayır. Yöntem ve güven (`method`, `confidence`) tahmindir; her bayrağı kareden doğrula. Dosya yoksa: `python -m social_studio.composition <analysis_klasörü>`.
 
 ## 9. Ses
 - Konuşma: ses tipi (yaş, cinsiyet hissi, enerji), hız (kelime/dk), TTS mi insan mı [tahmin]:

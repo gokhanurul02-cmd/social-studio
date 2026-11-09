@@ -3,6 +3,8 @@ import csv
 import importlib.util
 import io
 import os
+import re
+from collections import Counter
 from pathlib import Path
 import shutil
 import subprocess
@@ -13,10 +15,28 @@ from .media import save
 
 
 _RAPID = {}
+# Optional Turkish-capable recognition model (git-ignored, see models/ocr/README via doctor).
+MODEL_DIR = Path(os.getenv('SOCIAL_OCR_MODEL_DIR') or Path(__file__).resolve().parents[1] / 'models' / 'ocr')
+LATIN_REC = 'latin_PP-OCRv5_rec_mobile.onnx'
+LATIN_DICT = 'ppocrv5_latin_dict.txt'
+LATIN_SOURCE = ('https://www.modelscope.cn/models/RapidAI/RapidOCR/resolve/master/onnx/PP-OCRv5/rec/'
+                'latin_PP-OCRv5_rec_mobile.onnx')
+
+
+def ocr_model_status():
+    """Doctor line: is the Turkish-capable latin PP-OCRv5 recognizer present?"""
+    rec = MODEL_DIR / LATIN_REC
+    if rec.is_file():
+        return {'ok': True, 'model': LATIN_REC, 'path': str(rec), 'bytes': rec.stat().st_size,
+                'turkish_glyphs': True, 'source': LATIN_SOURCE}
+    return {'ok': False, 'model': LATIN_REC, 'path': str(rec), 'turkish_glyphs': False,
+            'note': 'missing: RapidOCR falls back to bundled ch/en model (no c-cedilla g-breve dotless-i o-umlaut s-cedilla)',
+            'source': LATIN_SOURCE}
 
 
 def _rapid_engine():
-    """Load RapidOCR once. The wheel ships its ONNX weights in <package>/models."""
+    """Load RapidOCR once. Prefers models/ocr latin PP-OCRv5 recognizer (Turkish letters);
+    falls back to the wheel's bundled ch/en weights in <package>/models."""
     if 'engine' in _RAPID:
         return _RAPID['engine']
     spec = importlib.util.find_spec('rapidocr_onnxruntime')
@@ -26,8 +46,24 @@ def _rapid_engine():
     if len(weights) < 2:
         raise FileNotFoundError('bundled ONNX weights missing in ' + str(Path(spec.origin).parent / 'models'))
     from rapidocr_onnxruntime import RapidOCR
+    rec = MODEL_DIR / LATIN_REC
+    _RAPID['turkish'] = False
+    if rec.is_file():
+        try:
+            _RAPID['engine'] = RapidOCR(rec_model_path=str(rec))
+            _RAPID['turkish'] = True
+            return _RAPID['engine']
+        except Exception as exc:
+            _RAPID['model_error'] = f'{type(exc).__name__}: {exc}'
     _RAPID['engine'] = RapidOCR()
     return _RAPID['engine']
+
+
+def _discover_engine():
+    if 'discover' not in _RAPID:
+        from rapidocr_onnxruntime import RapidOCR
+        _RAPID['discover'] = RapidOCR()
+    return _RAPID['discover']
 
 
 def recognizer():
@@ -41,11 +77,25 @@ def recognizer():
             return [{'quad': box, 'text': text, 'confidence': float(score)}
                     for box, text, score in (result or [])]
 
+        def rapid_discover(image):
+            # region discovery keeps the bundled ch/en recogniser: it reads text-mask images
+            # (black glyphs on white) most reliably; the latin model reads the final lines
+            result, _ = _discover_engine()(image)
+            return [{'quad': box, 'text': text, 'confidence': float(score)}
+                    for box, text, score in (result or [])]
+
         def rapid_line(image):
             # recognition only (no detector) for an already-tight single line
             result, _ = engine(image, use_det=False, use_cls=False, use_rec=True)
             return (result[0][0], float(result[0][1])) if result else ('', 0.0)
         rapid.line = rapid_line
+        if _RAPID.get('turkish'):
+            rapid.discover = rapid_discover
+        rapid.turkish = bool(_RAPID.get('turkish'))
+        if rapid.turkish:
+            return ('RapidOCR det PP-OCRv4 + rec latin PP-OCRv5 (models/ocr; Turkish letters in vocabulary)', rapid, reasons)
+        if _RAPID.get('model_error'):
+            reasons.append('latin model failed to load: ' + _RAPID['model_error'])
         return 'RapidOCR bundled ONNX models (PP-OCRv4 ch/en; ü/Ü only Turkish glyphs in vocabulary)', rapid, reasons
     except Exception as exc:
         reasons.append(f'RapidOCR: {type(exc).__name__}: {exc}')
@@ -168,6 +218,232 @@ def normalize_text(text):
     return out
 
 
+# ------------------------------------------------------- transcript-assisted fixes
+_FOLD = str.maketrans({'ç': 'c', 'Ç': 'c', 'ğ': 'g', 'Ğ': 'g', 'ı': 'i', 'İ': 'i', 'I': 'i',
+                       'ö': 'o', 'Ö': 'o', 'ş': 's', 'Ş': 's', 'ü': 'u', 'Ü': 'u', "'": '', '’': ''})
+
+
+def tr_fold(text):
+    """Diacritic-insensitive, case-insensitive key (Turkish aware: I/İ/ı -> i)."""
+    t = unicodedata.normalize('NFC', text or '').translate(_FOLD).lower()
+    return ''.join(c for c in unicodedata.normalize('NFD', t) if unicodedata.category(c) != 'Mn')
+
+
+def tr_upper(text):
+    return text.replace('i', 'İ').replace('ı', 'I').upper()
+
+
+def _apply_case(orig, new):
+    letters = [c for c in orig if c.isalpha()]
+    if len(letters) >= 2 and all(c.isupper() for c in letters):
+        return tr_upper(new)
+    if letters and letters[0].isupper() and all(c.islower() for c in letters[1:]):
+        return tr_upper(new[:1]) + new[1:]
+    return new
+
+
+def _edit_distance(a, b, limit=3):
+    if abs(len(a) - len(b)) > limit:
+        return limit + 1
+    prev = list(range(len(b) + 1))
+    for i, ca in enumerate(a, 1):
+        cur = [i]
+        for j, cb in enumerate(b, 1):
+            cur.append(min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (ca != cb)))
+        prev = cur
+    return prev[-1]
+
+
+def transcript_words(transcript):
+    """[(word, start_s, end_s)] from a faster-whisper style transcript dict (or path)."""
+    if transcript is None:
+        return []
+    if isinstance(transcript, (str, Path)):
+        import json
+        try:
+            transcript = json.loads(Path(transcript).read_text(encoding='utf-8'))
+        except (OSError, ValueError):
+            return []
+    out = []
+    for seg in transcript.get('segments', []) if isinstance(transcript, dict) else []:
+        words = seg.get('words') or []
+        if words:
+            for w in words:
+                token = (w.get('word') or '').strip()
+                if token and token[0] in "'’" and out:      # whisper splits Mudanya | 'ya
+                    prev = out[-1]
+                    out[-1] = (prev[0] + token, prev[1], float(w.get('end', prev[2])))
+                elif token:
+                    out.append((token, float(w.get('start', seg.get('start', 0))),
+                                float(w.get('end', seg.get('end', 0)))))
+        else:
+            toks = (seg.get('text') or '').split()
+            a, b = float(seg.get('start', 0)), float(seg.get('end', 0))
+            for k, token in enumerate(toks):
+                out.append((token, a + (b - a) * k / max(1, len(toks)),
+                            a + (b - a) * (k + 1) / max(1, len(toks))))
+    return out
+
+
+# Small built-in lexicon of Turkish words the Latin model confuses (capital G-breve / dotted I
+# are the weak glyphs) and that are typical in overlays. Lowest priority: transcript words win.
+TR_LEXICON = ('sağlık sağlıklı sağlıksız sağlığı değil değer değişim doğal doğru doğa bağış bağımsız çağrı yağ yağmur '
+              'ağız ağır uğraş oğlu buğu eğitim eğlence öğrenci öğretmen öğle ödeme yöntem yöntemleri yöntemi '
+              'tüketmeyin tüketin tanıştırıyoruz hizmetinizde hizmetinizdeyiz ulaşın takviyeli vitamini filtre '
+              'aşamalı şişe şişeyi ücretsiz güvenli güvenilir hakkı herkesin lezzetli kaliteli ekonomik fiyat '
+              'fiyatlar kampanya çok için şey gün güzel hızlı kolay önünde önüne yanında karşısı saf suyla '
+              'su otomatı otomatları işletme öğrenci ödeme nakit kart kağıt demir sipariş teslimat çözüm '
+              'yeni özel ürün ürünler indirim fırsat dikkat bugün şimdi hemen arayın başla '
+              'filtrelenmiş içecek bağışıklık mineralli sistem desteği paranızı yatırın koyun kapağı kapatın '
+              'butona basın hazır dönüşüm muhteşem geri kazanım saniye litre içme sağlığınız suyunuz').split()
+
+
+def build_vocab(transcript, language=None):
+    """fold -> most frequent spoken surface form. Fuzzy fixing needs a Turkish transcript."""
+    if isinstance(transcript, (str, Path)):
+        import json
+        try:
+            transcript = json.loads(Path(transcript).read_text(encoding='utf-8'))
+        except (OSError, ValueError):
+            transcript = None
+    words = transcript_words(transcript)
+    lang = language or (transcript.get('language') if isinstance(transcript, dict) else None)
+    counts = {}
+    for token, _, _ in words:
+        core = token.strip('.,!?;:"()[]-–—…')
+        if not core or not any(c.isalpha() for c in core):
+            continue
+        stem = core.split("'")[0].split('’')[0]
+        for surface in {core, stem}:
+            if surface:
+                counts.setdefault(tr_fold(surface), Counter())[surface] += 1
+    forms = {}
+    for key, counter in counts.items():
+        surface = counter.most_common(1)[0][0]
+        forms[key] = surface if surface.isupper() else surface.lower()
+    turkish = (lang or '').lower().startswith('tr')
+    if turkish:
+        for w in TR_LEXICON:
+            forms.setdefault(tr_fold(w), w)
+    return {'forms': forms, 'turkish': turkish, 'words': words}
+
+
+def _segment(fold, forms):
+    """Split a fused run ('saglikszisu') into spoken words, fewest pieces wins."""
+    n = len(fold)
+    best = [None] * (n + 1)
+    best[0] = []
+    for i in range(1, n + 1):
+        for j in range(max(0, i - 24), i):
+            if best[j] is None:
+                continue
+            piece = fold[j:i]
+            if len(piece) < 2 and piece not in ('o', 'a', 'e'):
+                continue
+            if piece in forms and (best[i] is None or len(best[j]) + 1 < len(best[i])):
+                best[i] = best[j] + [piece]
+    return best[n]
+
+
+_CAMEL = re.compile(r'(?<=[a-zçğıöşü])(?=[A-ZÇĞİÖŞÜ])')
+
+
+_FRONT, _BACK = set('EİÖÜ'), set('AIOU')
+
+
+def _harmony_i(word):
+    """ALL-CAPS Turkish: the engine reads dotted capital I as plain I. Vowel harmony
+    decides: a word whose other vowels are all front (E İ Ö Ü) takes dotted İ."""
+    letters = [c for c in word if c.isalpha()]
+    if len(letters) < 3 or not all(c.isupper() for c in letters) or 'I' not in word:
+        return word
+    others = [c for c in letters if c in _FRONT | _BACK and c != 'I']
+    if others and all(c in _FRONT for c in others):
+        return word.replace('I', 'İ')
+    return word
+
+
+def correct_text(text, vocab, harmony=False):
+    """Fix OCR words using the transcript (+ small Turkish lexicon). Never invents words:
+    replacements are spoken or lexicon words. harmony=True also repairs ALL-CAPS dotted İ.
+    Returns (text, [correction dicts])."""
+    forms = (vocab or {}).get('forms') or {}
+    turkish = bool(vocab and vocab.get('turkish'))
+    if not forms and not harmony:
+        return text, []
+    out, fixes = [], []
+    for token in text.split(' '):
+        lead = len(token) - len(token.lstrip('.,!?;:"()*-·•'))
+        rest = token[lead:]
+        core = rest.rstrip('.,!?;:"()*')
+        tail = rest[len(core):]
+        if not core or not any(c.isalpha() for c in core):
+            out.append(token)
+            continue
+        key = tr_fold(core)
+        replaced, method = None, None
+        if not forms:
+            pass
+        elif key in forms:
+            form = forms[key]
+            if form.casefold() != core.casefold():
+                new = _apply_case(core, form)
+                if new != core:
+                    replaced, method = new, 'transcript-diacritic'
+        elif len(key) >= 6:
+            parts = None
+            camel = [m for m in _CAMEL.split(core) if m]
+            pieces = None
+            if len(camel) >= 2 and all(tr_fold(c) in forms for c in camel):
+                parts, pieces = [tr_fold(c) for c in camel], camel
+            if parts is None:
+                parts = _segment(key, forms)
+            if parts and len(parts) >= 2:
+                replaced = ' '.join(_apply_case(pieces[n] if pieces else core, forms[p])
+                                    for n, p in enumerate(parts))
+                method = 'transcript-word-split'
+        if replaced is None and key not in forms and turkish and len(key) >= 5:
+            limit = 1 if len(key) < 9 else 2
+            cand = sorted((sum(a != b for a, b in zip(key, k)), k) for k in forms
+                          if len(k) == len(key))      # substitutions only: never drops/adds letters
+            if cand and cand[0][0] <= limit and (len(cand) == 1 or cand[1][0] > cand[0][0]):
+                replaced, method = _apply_case(core, forms[cand[0][1]]), 'transcript-fuzzy'
+        if harmony and not replaced:
+            fixed = _harmony_i(core)
+            if fixed != core:
+                replaced, method = fixed, 'tr-vowel-harmony-dotted-I'
+        if replaced:
+            fixes.append({'from': core, 'to': replaced, 'method': method})
+            out.append(token[:lead] + replaced + tail)
+        else:
+            out.append(token)
+    return ' '.join(out), fixes
+
+
+
+_EDGE_JUNK = '|·•*_~<>[]{}/=+^`' + chr(92)
+
+
+def clean_artifacts(text):
+    """Remove recogniser artifacts: stray edge symbols ('| the same thing') and spaces read
+    as hyphens ('to-tow-the-trucks'). Returns (text, [correction dicts])."""
+    fixes, words = [], text.split(' ')
+    while words and words[0] and all(c in _EDGE_JUNK for c in words[0]):
+        fixes.append({'from': words[0], 'to': '', 'method': 'artifact-edge-symbol'})
+        words = words[1:]
+    while words and words[-1] and all(c in _EDGE_JUNK for c in words[-1]):
+        fixes.append({'from': words[-1], 'to': '', 'method': 'artifact-edge-symbol'})
+        words = words[:-1]
+    out = []
+    for w in words:
+        parts = w.split('-')
+        if len(parts) >= 3 and all(p.isalpha() and p.islower() for p in parts):
+            fixes.append({'from': w, 'to': ' '.join(parts), 'method': 'artifact-hyphen-as-space'})
+            w = ' '.join(parts)
+        out.append(w)
+    return ' '.join(out).strip(), fixes
+
+
 def _ink_lines(mask):
     """Split a text mask into text lines (row runs); returns [(y0,y1,x0,x1)]."""
     import numpy as np
@@ -269,27 +545,32 @@ def _merge_rows(rows):
 
 
 def scan_text(source, info, output, sample_fps=4.0, difference_threshold=3.0,
-              iou_threshold=0.6, discovery_samples=16, regions=None):
+              iou_threshold=0.6, discovery_samples=16, regions=None, transcript=None):
     """Frame-accurate on-screen text timeline (see captions.py). sample_fps and
     difference_threshold are kept for CLI compatibility only: every frame is
     examined and change detection uses text-mask IoU < iou_threshold."""
     from . import captions as C
     started = time.time()
     method, recognize, reasons = recognizer()
+    vocab = build_vocab(transcript) if transcript is not None else None
+    engine_turkish = bool(getattr(recognize, 'turkish', False))
     fps = C._fps(info)
     report = {'method': method, 'confidence': 'engine scores are uncalibrated',
               'timing': 'frame-accurate: per-frame text-mask IoU, OCR only on segment middle frames',
               'fps': fps, 'sample_fps': fps, 'timing_uncertainty_s': 1 / fps,
               'difference_threshold': difference_threshold, 'iou_threshold': iou_threshold,
               'legacy_args_ignored': {'sample_fps': sample_fps, 'difference_threshold': difference_threshold},
-              'notes': reasons, 'records': [], 'ocr_frames': 0, 'regions': []}
+              'notes': reasons, 'records': [], 'ocr_frames': 0, 'regions': [],
+              'ocr_model': ocr_model_status(), 'turkish_glyph_engine': engine_turkish,
+              'transcript_used': bool(vocab and vocab['forms'])}
     if recognize is None and not regions:
         report['skipped'] = '; '.join(reasons)
         save(output, report)
         return report
     try:
         if regions is None:
-            regions, calls = C.discover_regions(source, info, recognize, discovery_samples)
+            regions, calls = C.discover_regions(source, info, getattr(recognize, 'discover', recognize),
+                                                discovery_samples)
             report['ocr_frames'] += calls
         else:
             regions = [dict(r) for r in regions]
@@ -350,6 +631,14 @@ def scan_text(source, info, output, sample_fps=4.0, difference_threshold=3.0,
                 norm = normalize_text(row['text'])
                 if not norm['text']:
                     continue
+                norm['raw'] = norm['text']
+                norm['text'], clean_fixes = clean_artifacts(norm['text'])
+                if sum(c.isalnum() for c in norm['text']) < 2:
+                    continue
+                tr_hint = engine_turkish and (bool(vocab and vocab['turkish']) or
+                                              any(c in norm['text'] for c in 'çğıöşüÇĞİÖŞÜ'))
+                norm['text'], fixes = correct_text(norm['text'], vocab, harmony=tr_hint)
+                norm['corrections'] = clean_fixes + fixes
                 if last is not None and last['end'] + 1 == seg['start'] and \
                         last['text'].casefold() == norm['text'].casefold():
                     last['end'] = seg['end']      # same text across a false split
@@ -379,8 +668,10 @@ def scan_text(source, info, output, sample_fps=4.0, difference_threshold=3.0,
             if norm['non_latin_ratio'] > 0:
                 flags_conf.append('non_latin')
                 conf = min(conf, 0.3)
-            if norm.get('turkish_suspected'):
+            if norm.get('turkish_suspected') and not engine_turkish:
                 flags_conf.append('turkish_diacritics_unsupported_by_engine')
+            item['text_ocr_raw'] = norm['raw']
+            item['corrections'] = norm['corrections']
             item.update({'start_frame': rec['start'], 'end_frame': rec['end'],
                          'duration_frames': rec['end'] - rec['start'] + 1,
                          'region': rec['region'], 'kind': None, 'style': style,
@@ -391,19 +682,14 @@ def scan_text(source, info, output, sample_fps=4.0, difference_threshold=3.0,
                          'ocr_frame': seg.get('ocr_frame')})
             if norm['non_latin_ratio'] > 0:
                 item['non_latin_chars'] = norm['non_latin_chars']
-            if norm.get('turkish_diacritic_suggestions'):
+            if norm.get('turkish_diacritic_suggestions') and not engine_turkish:
                 item['turkish_diacritic_suggestions'] = norm['turkish_diacritic_suggestions']
             item['_frame'], item['_bbox_px'] = frame, bx
             out.append(item)
-        per_region = {}
-        for it in out:
-            per_region.setdefault(it['region'], []).append(it)
-        for ri, items in per_region.items():
-            r = regions[ri]
-            kind = 'caption' if len(items) >= 3 else ('title' if (r['y0'] + r['y1']) / 2 < 0.4 else 'label')
-            for it in items:
-                it['kind'] = kind
-        out.sort(key=lambda r: (r['start_frame'], r['region']))
+        raw_records = len(out)
+        out = C.classify_kinds(out, regions, fps, tracks[0]['frames'], vocab['words'] if vocab else None)
+        report['kind_counts'] = dict(Counter(r['kind'] for r in out))
+        report['records_before_merge'] = raw_records
         font_samples = []
         caps = sorted((it for it in out if it['kind'] == 'caption' and it['confidence'] >= 0.85
                        and not it['confidence_flags'] and len(it['text']) >= 4),
@@ -424,7 +710,11 @@ def scan_text(source, info, output, sample_fps=4.0, difference_threshold=3.0,
         report['caption_style_summary'] = C.style_summary(out, fps, font_report)
         report['font_candidates'] = font_report
         report['non_latin_records'] = sum(1 for r in out if 'non_latin' in r['confidence_flags'])
-        report['notes'] = reasons + [
+        if engine_turkish:
+            report['notes'] = reasons + ['latin PP-OCRv5 recognizer: Turkish letters are in the vocabulary; '
+                                         'transcript-assisted fixes are listed per record in corrections']
+        else:
+          report['notes'] = reasons + [
             'bundled RapidOCR vocabulary lacks c-cedilla, g-breve, dotless i, dotted I, o-umlaut, s-cedilla '
             '(only u-umlaut present): Turkish diacritics may come back as plain letters; records are flagged '
             'turkish_diacritics_unsupported_by_engine when common Turkish words are seen']

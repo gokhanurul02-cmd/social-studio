@@ -91,7 +91,8 @@ def analyze(value, out=None, speech=True, model='large-v3-turbo', language='tr',
     if video != source and proxy_meta and 'width' in proxy_meta:
         # The proxy keeps fps and frame count; captions stay ~30+ px tall at 540p, enough for OCR.
         ocr_source, ocr_info = video, {**info, 'width': proxy_meta['width'], 'height': proxy_meta['height']}
-    text_report = scan_text(ocr_source, ocr_info, job / 'onscreen_text.json', ocr_fps, ocr_threshold)
+    text_report = scan_text(ocr_source, ocr_info, job / 'onscreen_text.json', ocr_fps, ocr_threshold,
+                           transcript=(job / 'transcript.json') if manifest['transcript_exists'] else None)
     manifest['measurements'] = {'ocr': {k: text_report[k] for k in ['method', 'confidence', 'skipped'] if k in text_report}}
     manifest['measurements']['ocr']['file'] = 'onscreen_text.json'
     manifest['measurements']['ocr']['video'] = 'proxy' if ocr_source != source else 'original'
@@ -124,6 +125,14 @@ def analyze(value, out=None, speech=True, model='large-v3-turbo', language='tr',
     save(job / 'analysis.json', manifest)
     from .summary import build_summary
     build_summary(job)
+    try:
+        from .composition import analyze_composition
+        comp = analyze_composition(job, video=video)
+        manifest['measurements']['composition'] = {'file': 'composition.json', 'method': comp.get('method'),
+                                                   'confidence': comp.get('confidence'), 'skipped': comp.get('skipped')}
+        save(job / 'analysis.json', manifest)
+    except Exception as exc:  # composition is an extra estimate; never lose the finished analysis
+        print(f'Kompozisyon ölçülemedi: {exc}', flush=True)
     try:
         from .timeline import build_timeline
         build_timeline(job)

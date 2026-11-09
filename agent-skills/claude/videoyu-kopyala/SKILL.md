@@ -25,6 +25,15 @@ Başarı ölçütü referansa sadakattir. Genel bir tanıtım videosu, "ondan il
   - Örnek yapı: `jobs/cybertruck-rebuild-v1/project` (main.js, shots.js, render/stills.cjs, render/video.cjs). Daha küçük ve temiz iskelet (prosedürel karakter, instanced kalabalık, kart çevirme + whip shader'ı, style.json'dan okunan altyazı stili, `video.cjs OUT AUDIO`): `jobs/20261109-agent5-style-test/project`.
   - Altyazı stilini koda gömme: `data/caption-style.json` style.json'dan birebir (font, `size_ratio`, `baseline_y_ratio`, dolgu, kontur, gölge); zamanlar `data/captions.json`.
 
+## 2b. Karakter ve asset kütüphanesi (rig'li karakter, kalabalık)
+
+Prosedürel primitif karakterler (küre/silindir hayvan, çubuk bacak) referanstaki rig'li, animasyonlu karakterlerin çok altında kalır. Önce kütüphaneye bak:
+
+1. **Seç:** `assets/catalog.json` (id, dosya, lisans, `animations`, `target` ölçek, `forward`, `foot_height_m`, `tris`, `crowd_lod`). Binary'ler git'te yok: `.venv\Scripts\python.exe assets\fetch_assets.py` (URL + sha256 ile indirir/doğrular). Mevcut: at (Quaternius, 2 renk + atlas), kedi (voxel/toon + `cat_shiba_kitbash`: Shiba rig'i + koddan kedi başı), Shiba köpek, insan (generic), kamyon, okul otobüsü (CC BY 3.0 — atıf zorunlu), Poly Haven gökyüzü HDRI.
+2. **Eksik asset:** yalnızca açık lisans — CC0 tercih (Quaternius/Poly Pizza, Kenney, Poly Haven, KhronosGroup glTF-Sample-Assets), CC BY ancak atıf satırıyla. Mixamo, hesap isteyen siteler, lisansı belirsiz modeller (ör. three.js örneklerindeki ro.me Horse/Flamingo, Mixamo kaynaklı Xbot/Soldier) yok. Yalnızca doğrudan `.glb/.gltf/.png/.hdr` indir; arşiv açma, çalıştırılabilir yok. Sayfadaki lisansı/yazarı kontrol et → `catalog.json` girdisi (url, sha256, license, attribution) + `assets/LICENSES.md` satırı → `fetch_assets.py` → `node templates/three-crowd/probe/probe.cjs <out> <id>` ile yan/ön/VAT karelerini gözle kontrol et, ölçülen alanları (`size_m`, `foot_height_m`, `tris`, `animations`) kataloğa yaz → `python -m unittest tests.test_assets_catalog`.
+3. **Kullan:** `templates/three-crowd/` (README'yi oku). Proje `render/harness.cjs` dosyası şablon harness'ını sarar (`/assets/`, `/crowd/`, `/three/` rotaları). `loadCharacter` (ayak y=0, +Z yön, katalog boyu) → kahramanlar `new Actor(tpl).play('Walk').seek(t)` (SkeletonUtils.clone + `AnimationMixer.setTime`, deterministik), kalabalık `bakeVAT(tpl,'Walk')` + `VATCrowd` (tek InstancedMesh, örnek başına faz/renk/ölçek; `tint: replace|multiply|none`). Koşum, ip bağlantı noktası, yedek kafa gibi ekler `attachToBone` ile — hem kahramanda hem VAT'ta hareket eder; tür uyarlama `bone_tweaks` ile. Çalışan örnek: `jobs/20261109-agent5-style-test/project-v4` (`src/characters.js`, v4/v5).
+4. Uygun rig'li karakter yoksa (ör. CC0 gerçekçi kedi bulunamadı) bunu REVIEW.md'de kalan fark olarak yaz; asset uydurma, telifli/hesap gerektiren kaynağa geçme.
+
 ## 3. Temsilî sahne önce
 
 1. En karakteristik tek sahneyi seç (genelde hook).

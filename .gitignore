@@ -49,3 +49,17 @@ __pycache__/
 /jobs/cybertruck-rebuild-v1/scripts/*
 !/jobs/cybertruck-rebuild-v1/scripts/build_mh.mjs
 !/jobs/cybertruck-rebuild-v1/scripts/mh_lib.mjs
+
+# Local OCR model weights (latin PP-OCRv5 rec; download from the official RapidOCR model repo)
+/models/
+
+# Asset library: binaries are re-downloaded by assets/fetch_assets.py (URL + sha256 in assets/catalog.json).
+# catalog.json, LICENSES.md and fetch_assets.py stay in git.
+/assets/**/*.glb
+/assets/**/*.gltf
+/assets/**/*.bin
+/assets/**/*.hdr
+/assets/**/*.exr
+/assets/**/*.png
+/assets/**/*.jpg
+/assets/**/*.part

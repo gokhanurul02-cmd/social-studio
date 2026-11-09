@@ -14,8 +14,9 @@ FINE_END = 3.0      # first seconds use the fine grid
 FINE_STEP = 0.1
 COARSE_STEP = 0.5
 INPUTS = ['scenes.json', 'transitions.json', 'visual_analysis.json', 'onscreen_text.json',
-          'audio_analysis.json', 'transcript.json']
-TRACKS = ['cut', 'transition', 'camera', 'text', 'speech', 'music', 'sfx', 'energy']
+          'audio_analysis.json', 'transcript.json', 'composition.json']
+OPTIONAL_INPUTS = {'composition.json'}
+TRACKS = ['cut', 'transition', 'camera', 'text', 'speech', 'music', 'sfx', 'energy', 'composition']
 
 
 def _read(path):
@@ -96,7 +97,8 @@ def build_events(job):
     for name in INPUTS:
         path = job / name
         if not path.is_file():
-            missing.append({'file': name, 'reason': 'file not found'})
+            if name not in OPTIONAL_INPUTS:   # older analyses have no composition.json; not an error
+                missing.append({'file': name, 'reason': 'file not found'})
             continue
         try:
             data = _read(path)
@@ -164,6 +166,16 @@ def build_events(job):
                 events.append(_event('speech', w['start'], _get(w, 'end', default=w['start']), fps,
                                      str(_get(w, 'word', 'text', default='')).strip(), 'transcript.json',
                                      _get(w, 'probability'), unit='word'))
+
+    comp = loaded.get('composition.json')
+    samples = comp.get('samples') if isinstance(comp, dict) else None
+    if samples:
+        half = (float(comp.get('sample_fps') or 3.0)) ** -1 / 2
+        for s in samples:
+            if _num(s.get('t')):
+                events.append(_event('composition', max(0.0, s['t'] - half), s['t'] + half, fps,
+                                     f'{s.get("shot_type", DASH)} {s.get("subject_area", 0):.0%}',
+                                     'composition.json', s.get('shot_confidence')))
 
     audio = loaded.get('audio_analysis.json') or {}
     if isinstance(audio, dict):
@@ -238,7 +250,8 @@ def build_grid(events, duration, fps):
             'transition': _join([e['value'] if e['track'] == 'transition' else 'cut'
                                  for e in by['transition'] + by['cut'] if _overlap(e, a, b)]),
             'audio': _join(e['value'] for e in by['sfx'] + by['music'] if _overlap(e, a, b)),
-            'energy': energy[0] if energy else DASH})
+            'energy': energy[0] if energy else DASH,
+            'composition': _join(e['value'] for e in by['composition'] if _overlap(e, a, b))})
     return rows
 
 
@@ -251,15 +264,15 @@ def _md(timeline):
         lines.append('Eksik / atlanan girdiler: ' + '; '.join(f'{m["file"]} ({m["reason"]})' for m in timeline['missing']))
         lines.append('')
     lines += ['Izgara: ilk 3 s için 0.1 s, sonrası için 0.5 s. Konuşma = o aralıkta başlayan kelimeler; diğer sütunlar o aralıkta etkin olanlar.', '',
-              '| t (s) | kare | konuşma | ekran metni | kamera | geçiş/kesme | ses olayı | enerji |',
-              '|---|---|---|---|---|---|---|---|']
+              '| t (s) | kare | konuşma | ekran metni | kamera | geçiş/kesme | ses olayı | enerji | kadraj (çekim tipi, özne alanı) |',
+              '|---|---|---|---|---|---|---|---|---|']
     esc = lambda s: str(s).replace('|', '\\|')
     for r in timeline['grid']:
         lines.append(f'| {r["t_start"]:.1f}–{r["t_end"]:.1f} | {r["frame_start"]}–{r["frame_end"]} | ' + ' | '.join(
-            esc(r[k]) for k in ('speech', 'text', 'camera', 'transition', 'audio', 'energy')) + ' |')
+            esc(r[k]) for k in ('speech', 'text', 'camera', 'transition', 'audio', 'energy', 'composition')) + ' |')
     lines += ['', '## Olaylar (iz bazında)']
     for track in TRACKS:
-        rows = [e for e in timeline['events'] if e['track'] == track and e.get('unit') != 'word' and track != 'energy']
+        rows = [e for e in timeline['events'] if e['track'] == track and e.get('unit') != 'word' and track not in ('energy', 'composition')]
         if not rows:
             continue
         lines += ['', f'### {track}', '', '| t_start–t_end | kare | değer | kaynak | güven |', '|---|---|---|---|---|']

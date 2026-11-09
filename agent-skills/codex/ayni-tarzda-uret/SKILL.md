@@ -9,6 +9,10 @@ Hedef, referansların **formülünü ve kalitesini** taşıyan ama konusu, senar
 
 Araç kökü: `C:/Users/birlik grup/Documents/Codex/tools/social-studio` (`social.cmd`, `.venv\Scripts\python.exe`, `bin\ffmpeg.exe`, `node_modules` içinde three@0.187.0 + playwright). Çalışan örnek: `jobs/20261109-agent5-style-test/` (kedi/at/otobüs, Three.js, v1→v3, stylecheck PASS; `README.md`, `REVIEW.md`).
 
+## 0. Önce kurallar ve kanıtlanmış referanslar
+
+`references/hikaye-ve-sahne-kurallari.md` dosyasını oku (hikâye kalıpları, kelime/süre ölçüsü, sahne planı, kelimeye kilitli zamanlama, kontrol listesi, yaşanmış hatalar). Konu bir anlatı/animasyon videosuysa `jobs/referans-kutuphanesi/` altındaki 4 tutmuş videodan kalıba en yakın olanın `ANALIZ.md` + `analysis/` klasörünü stil kaynağı olarak kullan ve stylecheck'i ona karşı çalıştır. Hikâye ve sahne planı tablosu hazır olmadan kod yazma.
+
 ## 1. Stil kaynağı
 
 - Referansın `jobs/<is>/style.json`, `ANALIZ.md` ve `analysis/` klasörü gerekir. Yoksa önce `video-analiz` skill'ini çalıştır.
@@ -32,6 +36,15 @@ Araç kökü: `C:/Users/birlik grup/Documents/Codex/tools/social-studio` (`socia
   - `src/env.js`: ızgara zemin + gökyüzü + IBL. `src/animals.js`: primitiflerden hayvan, gait fazı fonksiyonu, instancing için faz bake. `src/bus.js`: jenerik araç.
 - Her şey `seek(t)` / `renderFrame(frame)` ile hesaplanır; saat tabanlı animasyon yok. Kalabalık = faz başına `InstancedMesh`.
 - Altyazı stilini elle ayarlama: `data/caption-style.json` style.json'dan birebir kopyalanır (font dosyası, `size_ratio·H`, `baseline_y_ratio·H`, dolgu, kontur px@1080, gölge).
+
+## 3b. Karakter ve asset kütüphanesi (rig'li karakter, kalabalık)
+
+Prosedürel primitif karakterler (küre/silindir hayvan, çubuk bacak) referanstaki rig'li, animasyonlu karakterlerin çok altında kalır. Önce kütüphaneye bak:
+
+1. **Seç:** `assets/catalog.json` (id, dosya, lisans, `animations`, `target` ölçek, `forward`, `foot_height_m`, `tris`, `crowd_lod`). Binary'ler git'te yok: `.venv\Scripts\python.exe assets\fetch_assets.py` (URL + sha256 ile indirir/doğrular). Mevcut: at (Quaternius, 2 renk + atlas), kedi (voxel/toon + `cat_shiba_kitbash`: Shiba rig'i + koddan kedi başı), Shiba köpek, insan (generic), kamyon, okul otobüsü (CC BY 3.0 — atıf zorunlu), Poly Haven gökyüzü HDRI.
+2. **Eksik asset:** yalnızca açık lisans — CC0 tercih (Quaternius/Poly Pizza, Kenney, Poly Haven, KhronosGroup glTF-Sample-Assets), CC BY ancak atıf satırıyla. Mixamo, hesap isteyen siteler, lisansı belirsiz modeller (ör. three.js örneklerindeki ro.me Horse/Flamingo, Mixamo kaynaklı Xbot/Soldier) yok. Yalnızca doğrudan `.glb/.gltf/.png/.hdr` indir; arşiv açma, çalıştırılabilir yok. Sayfadaki lisansı/yazarı kontrol et → `catalog.json` girdisi (url, sha256, license, attribution) + `assets/LICENSES.md` satırı → `fetch_assets.py` → `node templates/three-crowd/probe/probe.cjs <out> <id>` ile yan/ön/VAT karelerini gözle kontrol et, ölçülen alanları (`size_m`, `foot_height_m`, `tris`, `animations`) kataloğa yaz → `python -m unittest tests.test_assets_catalog`.
+3. **Kullan:** `templates/three-crowd/` (README'yi oku). Proje `render/harness.cjs` dosyası şablon harness'ını sarar (`/assets/`, `/crowd/`, `/three/` rotaları). `loadCharacter` (ayak y=0, +Z yön, katalog boyu) → kahramanlar `new Actor(tpl).play('Walk').seek(t)` (SkeletonUtils.clone + `AnimationMixer.setTime`, deterministik), kalabalık `bakeVAT(tpl,'Walk')` + `VATCrowd` (tek InstancedMesh, örnek başına faz/renk/ölçek; `tint: replace|multiply|none`). Koşum, ip bağlantı noktası, yedek kafa gibi ekler `attachToBone` ile — hem kahramanda hem VAT'ta hareket eder; tür uyarlama `bone_tweaks` ile. Çalışan örnek: `jobs/20261109-agent5-style-test/project-v4` (`src/characters.js`, v4/v5).
+4. Uygun rig'li karakter yoksa (ör. CC0 gerçekçi kedi bulunamadı) bunu REVIEW.md'de kalan fark olarak yaz; asset uydurma, telifli/hesap gerektiren kaynağa geçme.
 
 ## 4. Ses (ücretsiz/yerel)
 

@@ -45,6 +45,14 @@ def _hyperframes_status():
         return {'checks': [], 'skipped': str(exc)}
 
 
+def _ocr_model_status():
+    try:
+        from .ocr import ocr_model_status
+        return ocr_model_status()
+    except Exception as exc:
+        return {'ok': False, 'error': str(exc)}
+
+
 def doctor():
     packages = ['opencv-python', 'numpy', 'rapidocr-onnxruntime', 'paddleocr', 'pytesseract', 'librosa', 'scikit-image', 'torch', 'lpips', 'open-clip-torch', 'edge-tts', 'faster-whisper', 'scenedetect', 'yt-dlp', 'Pillow', 'elevenlabs']
     versions = {}
@@ -58,7 +66,8 @@ def doctor():
             'earshot_exists': venv_python(EAR / '.venv').is_file(),
             'elevenlabs_key_present': bool(os.environ.get('ELEVENLABS_API_KEY')),
             'postiz_key_present': bool(os.environ.get('POSTIZ_API_KEY')),
-            'hyperframes': _hyperframes_status()}
+            'hyperframes': _hyperframes_status(),
+            'ocr_model': _ocr_model_status()}
     required_names = {'CLI binary', 'Node.js', 'FFmpeg', 'FFprobe', 'Chrome'}
     required_checks = [c for c in data['hyperframes'].get('checks', []) if c['name'] in required_names]
     data['core_ready'] = (versions.get('Pillow') is not None and FFMPEG.is_file() and FFPROBE.is_file()

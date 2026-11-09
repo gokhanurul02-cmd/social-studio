@@ -8,6 +8,7 @@
 - [ ] Her altyazı/metin değişimi kare numarasıyla yazıldı.
 - [ ] Font adayları, boyut oranı, konum, kontur ve animasyon ölçüldü.
 - [ ] Palet hex olarak sahne bazında çıkarıldı.
+- [ ] `composition.json`'dan kadraj/çekim tipi dağılımı, özne alan oranı, ufuk y oranı ve `flat_fill`/`edge_cut` olayları (zaman damgalı) okundu, her bayrak kareden doğrulandı ve §8'e yazıldı.
 - [ ] Her shot için kamera açısı, hareket yönü ve easing yazıldı.
 - [ ] Müzik, efekt ve konuşma olayları zamanlarıyla listelendi.
 - [ ] Entegre LUFS ve true peak (dBTP) ayrı ayrı ölçüldü ve yazıldı (summary.json veya ebur128).

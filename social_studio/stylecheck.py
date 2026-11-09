@@ -22,6 +22,7 @@ import math
 import re
 import statistics
 import subprocess
+import sys
 from fractions import Fraction
 from pathlib import Path
 
@@ -43,6 +44,18 @@ THRESHOLDS = {
     'wpm_rel': 0.15,                    # same-language words per minute (speaking span), relative
     'syllable_rate_rel': 0.20,          # syllables per second (speaking span), relative; same language only
     'max_pause_extra_s': 0.20,          # longest gap between words may exceed the reference by this much
+    # composition (local estimates, see composition.py; the candidate is gated, the reference only shown)
+    'comp_flat_fill_max': 0.27,         # one low-texture non-sky single-colour block may cover at most this share of the frame
+    'comp_edge_contact': 0.22,          # subject touches a frame border over >= this fraction of it ...
+    'comp_edge_area': 0.30,             # ... while covering >= this share of the frame (non-crowd shots) = edge cut
+    'comp_flag_min_samples': 2,         # consecutive samples (3 fps) before a flat-fill/edge-cut event is reported
+    'comp_flat_fill_events_max': 0,     # allowed number of flat-fill events in the candidate
+    'comp_edge_cut_events_max': 0,      # allowed number of edge-cut events in the candidate
+    'comp_area_median_abs': 0.08,       # median subject area share, absolute
+    'comp_shot_share_abs': 0.25,        # share of each shot type (wide/medium/close/crowd), absolute
+    'comp_horizon_abs': 0.12,           # median horizon y/H, absolute (only when both detect one in >= 50 % of samples)
+    'comp_centered_abs': 0.25,          # share of samples with the subject centred (|x-0.5| <= 0.12), absolute
+    'comp_pair_max': 7,                 # same-moment pairs written per candidate
 }
 
 # ----------------------------------------------------------------------------- small helpers
@@ -297,6 +310,7 @@ def profile_from_style(style, base_dir, cache_dir=None, measure=True):
             _put(p, 'syllables_per_s', pace['syllables_per_s'], f'{folder.name}/transcript.json speaking span')
             _put(p, 'max_pause_s', pace['max_pause_s'], f'{folder.name}/transcript.json word gaps')
             break
+    p['_beats'] = [b for b in (style.get('beats') or []) if isinstance(b, dict) and _num(b.get('start_s')) and _num(b.get('end_s'))]
     sibling = base_dir / 'analysis'
     if (sibling / 'analysis.json').is_file():
         auto = profile_from_analysis(sibling, cache_dir, measure)
@@ -308,6 +322,9 @@ def profile_from_style(style, base_dir, cache_dir=None, measure=True):
                     p[key]['source'] += f' [aynı otomatik ölçüm; style.json elle: {fmt(hand["value"], key)}]'
         if '_transition_times' in auto and 'transitions_per_s' in auto:
             p['_transition_times'] = auto['_transition_times']
+        for key, value in auto.items():
+            if key.startswith('comp_') or key in ('_comp_samples', '_comp_duration', '_comp_flags', '_video', '_job'):
+                p[key] = value
         p['_notes'] = p.get('_notes', []) + auto.get('_notes', [])
     return p
 
@@ -447,6 +464,7 @@ def profile_from_analysis(job, cache_dir=None, measure=True):
             (lufs, tp), src = got, 'ffmpeg loudnorm (stylecheck run)'
     _put(p, 'integrated_lufs', lufs if _num(lufs) else None, src)
     _put(p, 'true_peak_dbtp', tp if _num(tp) else None, src)
+    _composition_profile(p, job, analysis, cache_dir, measure)
     pace = speech_pace(_maybe(job / 'transcript.json'))
     if pace:
         p['_language'] = pace['language']
@@ -454,6 +472,65 @@ def profile_from_analysis(job, cache_dir=None, measure=True):
         _put(p, 'syllables_per_s', pace['syllables_per_s'], 'transcript.json speaking span')
         _put(p, 'max_pause_s', pace['max_pause_s'], 'transcript.json word gaps')
     return p
+
+
+# ----------------------------------------------------------------------------- composition
+
+def _comp_limits(th):
+    return {'flat_fill_ratio': th['comp_flat_fill_max'], 'edge_contact': th['comp_edge_contact'],
+            'edge_area': th['comp_edge_area'], 'min_flag_run': th['comp_flag_min_samples']}
+
+
+def comp_metrics(samples, duration, th=None):
+    """Metric dict from composition samples (also used for a reference window)."""
+    from . import composition as cm
+    th = th or THRESHOLDS
+    limits = dict(cm.LIMITS, **_comp_limits(th))
+    stats, flags, _, _ = cm.summarize(samples, duration, [], limits)
+    out = {'comp_shot_type_share': stats['shot_type_share'],
+           'comp_subject_area_median': (stats['subject_area'] or {}).get('median'),
+           'comp_subject_area_iqr': (stats['subject_area'] or {}).get('iqr'),
+           'comp_horizon_y': (stats['horizon_y'] or {}).get('median') if stats['horizon_detected_share'] >= 0.5 else None,
+           'comp_centered_share': stats['centered_share'],
+           'comp_thirds_distance': (stats['thirds_distance'] or {}).get('median'),
+           'comp_flat_fill_events': len(flags['flat_fill']), 'comp_edge_cut_events': len(flags['edge_cut'])}
+    return out, flags
+
+
+def _job_video(job, analysis):
+    for cand in (Path(job) / 'proxy-540p.mp4', Path((analysis or {}).get('source') or '')):
+        if cand and cand.is_file():
+            return cand
+    return None
+
+
+def _composition_profile(p, job, analysis, cache_dir, measure):
+    from . import composition as cm
+    comp = cm.load_composition(job)
+    src = 'composition.json'
+    if comp is None and measure and cache_dir is not None:
+        cache = Path(cache_dir) / f'composition-{job.parent.name}-{job.name}.json'
+        comp = _maybe(cache)
+        if not (comp and comp.get('samples')):
+            try:
+                Path(cache_dir).mkdir(parents=True, exist_ok=True)
+                comp = cm.analyze_composition(job, out=cache)
+            except Exception as exc:  # noqa: BLE001 - best effort, report
+                p['_notes'] = p.get('_notes', []) + [f'kompozisyon ölçülemedi: {exc}']
+                comp = None
+        src = cache.name + ' (stylecheck run)'
+    if not comp or not comp.get('samples'):
+        return
+    samples = comp['samples']
+    duration = comp.get('duration') or (samples[-1]['t'] + 0.2)
+    metrics, flags = comp_metrics(samples, duration)
+    for key, value in metrics.items():
+        _put(p, key, value, f'{src} ({len(samples)} örnek, ~{comp.get("sample_fps", 3):g} fps tahmini)')
+    p['_comp_samples'] = samples
+    p['_comp_duration'] = duration
+    p['_comp_flags'] = flags
+    p['_video'] = str(_job_video(job, analysis) or comp.get('video') or '')
+    p['_job'] = str(job)
 
 
 def load_profile(path, cache_dir=None, measure=True):
@@ -492,7 +569,16 @@ METRICS = [
     ('wpm_span', 'Konuşma hızı', 'kelime/dk'),
     ('syllables_per_s', 'Hece hızı', 'hece/s'),
     ('max_pause_s', 'En uzun konuşma boşluğu', 's'),
+    ('comp_shot_type_share', 'Çekim tipi dağılımı (tahmin)', 'pay'),
+    ('comp_subject_area_median', 'Özne alan oranı medyanı', 'alan/kare'),
+    ('comp_subject_area_iqr', 'Özne alan oranı IQR', 'alan/kare'),
+    ('comp_horizon_y', 'Ufuk çizgisi y oranı (tahmin)', 'y/H'),
+    ('comp_centered_share', 'Özne ortada payı', 'pay'),
+    ('comp_thirds_distance', 'Ağırlık merkezi – üçte bir noktası uzaklığı', 'norm.'),
+    ('comp_flat_fill_events', 'Düz blok kadrajı doldurma olayı', 'adet'),
+    ('comp_edge_cut_events', 'Özne kenar kesilmesi olayı', 'adet'),
 ]
+COMP_EVENT_KEYS = ('comp_flat_fill_events', 'comp_edge_cut_events')
 GATED_TRANSITIONS = {'flip', 'whip', 'zoom_burst', 'hard_cut', 'dissolve', 'wipe', 'fade'}
 
 
@@ -515,8 +601,33 @@ def compare_metric(key, ref, new, th, ref_profile, new_profile):
             note = 'teslim hedefi; referans miksi kopyalanmaz' if ref is not None and not (lo <= ref <= hi) else ''
             return (new - ref if ref is not None else None), f'{lo}…{hi} LUFS', 'PASS' if lo <= new <= hi else 'FAIL', note
         return (new - ref if ref is not None else None), f'≤ {th["true_peak_max"]} dBTP', 'PASS' if new <= th['true_peak_max'] else 'FAIL', ''
+    if key in COMP_EVENT_KEYS:
+        if new is None:
+            return None, '', 'SKIP', 'yeni videoda kompozisyon ölçümü yok'
+        limit = th['comp_flat_fill_events_max'] if key == 'comp_flat_fill_events' else th['comp_edge_cut_events_max']
+        what = (f'tek renk blok ≥ {th["comp_flat_fill_max"]:.0%} kare' if key == 'comp_flat_fill_events'
+                else f'özne kenar teması ≥ {th["comp_edge_contact"]:.0%} ve alan ≥ {th["comp_edge_area"]:.0%}')
+        note = ('referansta da var (kasıtlı yakın plan olabilir); kareden doğrula' if ref and new else '')
+        return (new - ref if ref is not None else None), f'≤ {limit} olay ({what})', 'PASS' if new <= limit else 'FAIL', note
     if ref is None or new is None:
         return None, '', 'SKIP', 'referansta ölçüm yok' if ref is None else 'yeni videoda ölçüm yok'
+    if key == 'comp_shot_type_share':
+        types = sorted(set(ref) | set(new))
+        diffs = {t: new.get(t, 0.0) - ref.get(t, 0.0) for t in types}
+        worst = max(diffs, key=lambda t: abs(diffs[t]))
+        return diffs[worst], f'her türde |fark| ≤ {th["comp_shot_share_abs"]}', 'PASS' if abs(diffs[worst]) <= th['comp_shot_share_abs'] else 'FAIL', f'en büyük fark: {worst}'
+    if key == 'comp_subject_area_median':
+        d = new - ref
+        return d, f'|fark| ≤ {th["comp_area_median_abs"]}', 'PASS' if abs(d) <= th['comp_area_median_abs'] else 'FAIL', ''
+    if key == 'comp_horizon_y':
+        d = new - ref
+        # perspective grids and clouds make the horizon estimate noisy: shown against the tolerance, not gating
+        return d, f'bilgi; |fark| ≤ {th["comp_horizon_abs"]} beklenir', 'INFO', ('tolerans dışı; ' if abs(d) > th['comp_horizon_abs'] else '') + 'ufuk tahmini gürültülü, kareden doğrula'
+    if key == 'comp_centered_share':
+        d = new - ref
+        return d, f'|fark| ≤ {th["comp_centered_abs"]}', 'PASS' if abs(d) <= th['comp_centered_abs'] else 'FAIL', ''
+    if key in ('comp_subject_area_iqr', 'comp_thirds_distance'):
+        return new - ref, 'bilgi (kapı değil)', 'INFO', ''
     if key == 'aspect':
         d = new - ref
         return d, f'|fark| ≤ {th["aspect_abs"]}', 'PASS' if abs(d) <= th['aspect_abs'] else 'FAIL', ''
@@ -595,6 +706,8 @@ def fmt(value, key=None):
         return ' '.join(h for h, _ in value[:4])
     if isinstance(value, bool):
         return 'var' if value else 'yok'
+    if isinstance(value, dict):
+        return ', '.join(f'{k} {v:.2f}' for k, v in value.items()) or '∅'
     if isinstance(value, (list, tuple)):
         if key == 'caption_words_per_group':
             return f'{value[0]:g}–{value[1]:g}'
@@ -609,22 +722,145 @@ def windowed_reference(ref, cand):
     reference for time-density metrics; whole-video density would punish a dense opening."""
     ref_d, cand_d = _v(ref, 'duration_s'), _v(cand, 'duration_s')
     times = ref.get('_transition_times')
-    if not (ref_d and cand_d and times) or cand_d >= 0.8 * ref_d:
+    if not (ref_d and cand_d) or cand_d >= 0.8 * ref_d:
         return ref
     out = dict(ref)
-    n = sum(t < cand_d for t in times)
-    out['transitions_per_s'] = {'value': n / cand_d, 'source': ref['transitions_per_s']['source'],
-                                'window': f'referans = ilk {cand_d:.1f} s penceresi: {n / cand_d:.3f} geçiş/s (aday kesit)'}
+    if times:
+        n = sum(t < cand_d for t in times)
+        out['transitions_per_s'] = {'value': n / cand_d, 'source': ref['transitions_per_s']['source'],
+                                    'window': f'referans = ilk {cand_d:.1f} s penceresi: {n / cand_d:.3f} geçiş/s (aday kesit)'}
+    window = [s for s in ref.get('_comp_samples') or [] if s['t'] < cand_d]
+    if len(window) >= 3:
+        metrics, flags = comp_metrics(window, cand_d)
+        for key, value in metrics.items():
+            if value is not None and key in ref:
+                out[key] = {'value': value, 'source': ref[key]['source'],
+                            'window': f'referans = ilk {cand_d:.1f} s penceresi (aday kesit)'}
+        out['_comp_flags'] = flags
     return out
+
+
+def rethreshold_composition(prof, th):
+    """Recompute composition rows/flags with the active (possibly overridden) thresholds."""
+    if not prof.get('_comp_samples'):
+        return
+    metrics, flags = comp_metrics(prof['_comp_samples'], prof['_comp_duration'], th)
+    for key, value in metrics.items():
+        if key in prof and value is not None:
+            prof[key]['value'] = value
+        elif key in prof:
+            del prof[key]
+    prof['_comp_flags'] = flags
+
+
+def composition_warnings(prof, name):
+    """Timestamped warning list for one video, e.g. 'v1 0.0–0.9 s flat_fill 0.48'."""
+    out = []
+    flags = prof.get('_comp_flags') or {}
+    for ev in flags.get('flat_fill', []):
+        out.append({'video': name, 'kind': 'flat_fill', 't_start': ev['t_start'], 't_end': ev['t_end'], 'value': ev['peak'],
+                    'text': f'{name} {ev["t_start"]:.1f}–{ev["t_end"]:.1f} s flat_fill {ev["peak"]:.2f}'})
+    for ev in flags.get('edge_cut', []):
+        out.append({'video': name, 'kind': 'edge_cut', 't_start': ev['t_start'], 't_end': ev['t_end'], 'value': ev['peak'],
+                    'side': ev.get('side'), 'subject_area': ev.get('subject_area'),
+                    'text': f'{name} {ev["t_start"]:.1f}–{ev["t_end"]:.1f} s edge_cut {ev.get("side", "")} {ev["peak"]:.2f}'
+                            f' (özne alanı {ev.get("subject_area", 0):.2f})'})
+    return sorted(out, key=lambda w: w['t_start'])
+
+
+# ----------------------------------------------------------------------------- same-moment pairs
+
+def pair_moments(ref, cand_d, n_max):
+    """(role, t_ref, t_cand) moments.  Style.json beats if present (beat mid-points + the hook frame), else
+    evenly spaced relative positions.  A candidate that is a short excerpt (< 80 % of the reference) is
+    compared at the same absolute time, otherwise at the same relative position."""
+    ref_d = _v(ref, 'duration_s') or ref.get('_comp_duration') or cand_d
+    excerpt = cand_d < 0.8 * ref_d
+    moments = [('hook', 0.3)]
+    for b in ref.get('_beats') or []:
+        moments.append((str(b.get('role', 'beat')), (b['start_s'] + b['end_s']) / 2))
+    if len(moments) == 1:
+        n = max(3, min(n_max, 6))
+        moments += [(f'{round(100 * (i + .5) / n)}%', ref_d * (i + .5) / n) for i in range(n)]
+    out = []
+    for role, t in moments:
+        if excerpt:
+            if t >= cand_d - 0.1:
+                continue
+            tc = t
+        else:
+            tc = t / ref_d * cand_d
+        out.append((role, round(t, 2), round(min(tc, cand_d - 0.05), 2)))
+    return out[:n_max]
+
+
+def _annotate(img, rec, label):
+    import cv2
+    h, w = img.shape[:2]
+    out = img.copy()
+    if rec.get('subject_bbox'):
+        x, y, bw, bh = rec['subject_bbox']
+        cv2.rectangle(out, (int(x * w), int(y * h)), (int((x + bw) * w), int((y + bh) * h)), (0, 0, 255), 2)
+    if rec.get('horizon_y') is not None:
+        cv2.line(out, (0, int(rec['horizon_y'] * h)), (w, int(rec['horizon_y'] * h)), (0, 255, 0), 1)
+    if rec.get('centroid'):
+        cv2.circle(out, (int(rec['centroid'][0] * w), int(rec['centroid'][1] * h)), 5, (255, 0, 255), -1)
+    cv2.rectangle(out, (0, 0), (w, 22), (0, 0, 0), -1)
+    cv2.putText(out, label, (4, 16), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1, cv2.LINE_AA)
+    return out
+
+
+COMP_PAIR_FIELDS = ('shot_type', 'subject_area', 'flat_fill_ratio', 'horizon_y', 'blob_count')
+
+
+def build_pairs(ref, cand, out, cand_name, th):
+    """Frame pairs at matching moments + composition difference table (no pixel similarity)."""
+    import cv2
+    import numpy as np
+    from . import composition as cm
+    rv, cv_ = ref.get('_video'), cand.get('_video')
+    if not (rv and cv_ and Path(rv).is_file() and Path(cv_).is_file()):
+        return [], 'eşleşen anlar için video bulunamadı'
+    cand_d = _v(cand, 'duration_s') or cand.get('_comp_duration')
+    pairs_dir = Path(out) / 'pairs'
+    pairs_dir.mkdir(parents=True, exist_ok=True)
+    limits = dict(cm.LIMITS, **_comp_limits(th))
+    rows = []
+    for i, (role, tr, tc) in enumerate(pair_moments(ref, cand_d, th['comp_pair_max']), 1):
+        a, b = cm.frame_at(rv, tr, 360), cm.frame_at(cv_, tc, 360)
+        if a is None or b is None:
+            continue
+        ra, rb = cm.measure_frame(cv2.resize(a, (cm.WORK_WIDTH, round(a.shape[0] * cm.WORK_WIDTH / a.shape[1]))), limits), \
+            cm.measure_frame(cv2.resize(b, (cm.WORK_WIDTH, round(b.shape[0] * cm.WORK_WIDTH / b.shape[1]))), limits)
+        height = 640
+        fit = lambda im: cv2.resize(im, (round(im.shape[1] * height / im.shape[0]), height))
+        left = _annotate(fit(a), ra, f'REF {tr:.2f}s {role}')
+        right = _annotate(fit(b), rb, f'{cand_name} {tc:.2f}s {ra["shot_type"]}->{rb["shot_type"]}')
+        safe = re.sub(r'[^0-9A-Za-z]+', '-', role).strip('-') or 'beat'
+        name = f'{cand_name}-{i:02d}-{safe}.jpg'
+        cv2.imwrite(str(pairs_dir / name), np.hstack([left, np.full((height, 8, 3), 255, np.uint8), right]),
+                    [cv2.IMWRITE_JPEG_QUALITY, 90])
+        rows.append({'role': role, 't_ref': tr, 't_cand': tc, 'image': f'pairs/{name}',
+                     'ref': {k: ra.get(k) for k in COMP_PAIR_FIELDS + ('centroid', 'edge_cut')},
+                     'cand': {k: rb.get(k) for k in COMP_PAIR_FIELDS + ('centroid', 'edge_cut')},
+                     'diff': {'subject_area': round(rb['subject_area'] - ra['subject_area'], 3),
+                              'flat_fill_ratio': round(rb['flat_fill_ratio'] - ra['flat_fill_ratio'], 3),
+                              'centroid_x': (round(rb['centroid'][0] - ra['centroid'][0], 3) if ra.get('centroid') and rb.get('centroid') else None),
+                              'centroid_y': (round(rb['centroid'][1] - ra['centroid'][1], 3) if ra.get('centroid') and rb.get('centroid') else None),
+                              'horizon_y': (round(rb['horizon_y'] - ra['horizon_y'], 3) if ra.get('horizon_y') is not None and rb.get('horizon_y') is not None else None),
+                              'shot_type': 'aynı' if ra['shot_type'] == rb['shot_type'] else f'{ra["shot_type"]} -> {rb["shot_type"]}'}})
+    return rows, None
 
 
 def build_report(ref_path, cand_paths, out=None, thresholds=None, measure=True):
     th = dict(THRESHOLDS, **(thresholds or {}))
     cache = Path(out) if out else None
     ref, ref_label = load_profile(ref_path, cache, measure)
+    rethreshold_composition(ref, th)
     candidates = []
     for c in cand_paths:
         prof, label = load_profile(c, cache, measure)
+        rethreshold_composition(prof, th)
         ref_c = windowed_reference(ref, prof)
         rows = []
         for key, name, unit in METRICS:
@@ -636,13 +872,49 @@ def build_report(ref_path, cand_paths, out=None, thresholds=None, measure=True):
                          'rule': rule, 'status': status, 'note': note,
                          'reference_source': (ref_c.get(key) or {}).get('source'), 'candidate_source': (prof.get(key) or {}).get('source')})
         counts = {s: sum(r['status'] == s for r in rows) for s in ('PASS', 'FAIL', 'INFO', 'SKIP')}
+        name = Path(label).name
+        pairs, pair_note = [], None
+        if measure and cache is not None and ref.get('_comp_samples') and prof.get('_comp_samples'):
+            try:
+                pairs, pair_note = build_pairs(ref, prof, cache, name, th)
+            except Exception as exc:  # noqa: BLE001 - pairs are a visual aid; never lose the report
+                pair_note = f'eşleşen kare çiftleri üretilemedi: {exc}'
         candidates.append({'path': label, 'language': prof.get('_language'), 'rows': rows, 'counts': counts,
-                           'verdict': 'FAIL' if counts['FAIL'] else 'PASS', 'notes': prof.get('_notes', [])})
+                           'verdict': 'FAIL' if counts['FAIL'] else 'PASS', 'notes': prof.get('_notes', []),
+                           'composition_warnings': composition_warnings(prof, name),
+                           'reference_composition_warnings': composition_warnings(ref_c, 'REF'),
+                           'pairs': pairs, 'pairs_note': pair_note})
     report = {'schema': 'social-studio.stylecheck.v1', 'reference': ref_label, 'reference_language': ref.get('_language'),
               'thresholds': th, 'candidates': candidates,
               'note': ('Metrik bazında kurallar; genel benzerlik yüzdesi yoktur. INFO satırları kapı değildir. '
                        'Kareleri gözle incelemenin yerini tutmaz.')}
     return report
+
+
+def comp_markdown(i, c):
+    out = ['', f'## Kompozisyon – Aday {i}', '',
+           'Tahmin: özne maskesi (satır arka plan rengi + spektral artık), düz blok, kenar teması, ufuk; güven 0.35–0.75. '
+           'Her uyarıyı kareden doğrula.', '']
+    warns = c.get('composition_warnings') or []
+    out.append('Uyarılar (aday): ' + ('yok' if not warns else ''))
+    out += [f'- {w["text"]}' for w in warns]
+    refw = c.get('reference_composition_warnings') or []
+    if refw:
+        out.append('Referansta aynı pencerede: ' + '; '.join(w['text'] for w in refw))
+    pairs = c.get('pairs') or []
+    if pairs:
+        out += ['', 'Aynı-an karşılaştırması (görseller `pairs/` altında; fark = aday − referans):', '',
+                '| An (rol) | t ref / aday | Çekim tipi | Özne alanı ref → aday | Merkez Δx / Δy | Düz blok Δ | Ufuk Δ | Görsel |',
+                '|---|---|---|---|---|---|---|---|']
+        for p in pairs:
+            d = p['diff']
+            f = lambda v: '—' if v is None else f'{v:+.2f}'
+            out.append(f'| {p["role"]} | {p["t_ref"]:.2f} / {p["t_cand"]:.2f} | {d["shot_type"]} | '
+                       f'{p["ref"]["subject_area"]:.2f} → {p["cand"]["subject_area"]:.2f} | {f(d["centroid_x"])} / {f(d["centroid_y"])} | '
+                       f'{f(d["flat_fill_ratio"])} | {f(d["horizon_y"])} | {p["image"]} |')
+    elif c.get('pairs_note'):
+        out.append(f'Eşleşen kare çiftleri: {c["pairs_note"]}')
+    return out
 
 
 def to_markdown(report):
@@ -661,6 +933,8 @@ def to_markdown(report):
             status = r['status'] + (f' – {r["note"]}' if r['note'] else '')
             cells += [fmt(r['candidate'], key), fmt(r['diff']), status]
         lines.append('| ' + ' | '.join(cells) + ' |')
+    for i, c in enumerate(cands, 1):
+        lines += comp_markdown(i, c)
     lines += ['', 'Eşikler (değiştirmek için `--thresholds dosya.json`):', '', '```json',
               json.dumps(report['thresholds'], ensure_ascii=False, indent=1), '```', '', report['note']]
     for i, c in enumerate(cands, 1):
@@ -678,7 +952,10 @@ def stylecheck(reference, candidates, out=None, thresholds_file=None, measure=Tr
         out.mkdir(parents=True, exist_ok=True)
         (out / 'stylecheck.json').write_text(json.dumps(report, ensure_ascii=False, indent=1, default=str), encoding='utf-8')
         (out / 'STYLECHECK.md').write_text(md, encoding='utf-8')
-    print(md)
+    try:
+        print(md)
+    except UnicodeEncodeError:  # legacy Windows console code pages
+        print(md.encode(sys.stdout.encoding or 'ascii', 'replace').decode(sys.stdout.encoding or 'ascii'))
     return report
 
 

@@ -194,6 +194,23 @@ class StudioChecks(unittest.TestCase):
             report = scan_text(self.source, studio.video_info(self.source), self.work / 'ocr-skip.json')
         self.assertIn('skipped', report)
 
+    def test_14_audio_energy_silence_and_alignment(self):
+        from social_studio.audio_analysis import analyze_audio, cut_alignment
+        source = self.work / 'tone.wav'
+        studio.run([studio.FFMPEG, '-v', 'error', '-n', '-f', 'lavfi', '-i',
+                    'sine=frequency=440:sample_rate=16000:duration=2', source], capture=True)
+        with patch.dict('sys.modules', {'librosa': None}):
+            report = analyze_audio(source, {'has_audio': True, 'duration': 2}, self.work / 'tone.json')
+        self.assertEqual(len(report['rms_curve']), 20)
+        self.assertAlmostEqual(report['rms_curve'][5]['dbfs'], -21.07, delta=.2)
+        self.assertTrue(report['loudness_curve'])
+        self.assertIn('skipped', report['rhythm'])
+        aligned = cut_alignment([{'start': 0}, {'start': 1.02}], [1])
+        self.assertAlmostEqual(aligned['cuts'][0]['nearest_beat_ms'], 20)
+        self.assertEqual(aligned['aligned_ratio'], 1)
+        report = analyze_audio(self.source, studio.video_info(self.source), self.work / 'silent.json')
+        self.assertIn('skipped', report)
+
 
 if __name__ == '__main__':
     os.environ['PYTHONUTF8']='1'

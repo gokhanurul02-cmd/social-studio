@@ -81,6 +81,11 @@ def analyze(value, out=None, speech=True, model='large-v3-turbo', language='tr',
     manifest['measurements'] = {'ocr': {k: text_report[k] for k in ['method', 'confidence', 'skipped'] if k in text_report}}
     manifest['measurements']['ocr']['file'] = 'onscreen_text.json'
     manifest['transcription'] = speech_status
+    from .audio_analysis import analyze_audio
+    transcript = load(job / 'transcript.json') if manifest['transcript_exists'] else None
+    audio_report = analyze_audio(source, info, job / 'audio_analysis.json', scenes, transcript)
+    manifest['measurements']['audio'] = {k: audio_report[k] for k in ['method', 'confidence', 'skipped'] if k in audio_report}
+    manifest['measurements']['audio']['file'] = 'audio_analysis.json'
     save(job / 'analysis.json', manifest)
     (job / 'REBUILD.md').write_text(
         f'# Referans yeniden kurma\n\nKaynak: {source}\n\n'

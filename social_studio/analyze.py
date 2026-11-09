@@ -23,7 +23,8 @@ from fractions import Fraction
 from .media import *
 from .audio import *
 def analyze(value, out=None, speech=True, model='large-v3-turbo', language='tr', interval=1.0,
-            scene_threshold=3.0, min_scene_seconds=0.3, ocr_fps=4.0, ocr_threshold=3.0, max_frames=120):
+            scene_threshold=3.0, min_scene_seconds=0.3, ocr_fps=4.0, ocr_threshold=3.0, max_frames=120,
+            allow_model_download=False):
     if not (0 < ocr_fps <= 30 and ocr_threshold >= 0 and max_frames >= 1):
         raise ValueError('ocr-fps must be in (0,30], ocr-threshold >= 0')
     job = Path(out).resolve() if out else ROOT / 'jobs' / f'{stamp()}-{slug(Path(value).stem)}'
@@ -74,7 +75,7 @@ def analyze(value, out=None, speech=True, model='large-v3-turbo', language='tr',
              job / 'audio.wav'], capture=True)
         if speech:
             try:
-                transcribe(job / 'audio.wav', job, model, language)
+                transcribe(job / 'audio.wav', job, model, language, allow_model_download=allow_model_download)
             except (ImportError, OSError, RuntimeError) as exc:
                 speech_status = {'skipped': str(exc)}
     manifest = {'created': datetime.now(IST).isoformat(), 'source': str(source),

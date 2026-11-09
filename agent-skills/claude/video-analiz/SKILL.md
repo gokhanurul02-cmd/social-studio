@@ -78,3 +78,5 @@ Teslim etmeden önce `references/kalite-kontrol.md` içindeki "Analiz" listesini
 Kullanıcıya kısa bir özet ver: videonun formülü (hook, yapı, ritim) 3–5 cümle, yeniden kurmanın zor olacağı 2–3 nokta ve dosya yolları. Raporun tamamını sohbete yapıştırma.
 
 Sonraki adım: aynı videoyu kurmak için `videoyu-kopyala`, aynı tarzda yeni konu için `ayni-tarzda-uret`.
+
+Yeni ölçümler ve bayraklar için WORKFLOWS.md içindeki “Ölçümlü analiz ve karşılaştırma” bölümünü okuyun. summary.json kaynak/yöntem/güven alanlarını ve atlanan ölçümleri koruyun; karşılaştırmada SSIM bir benzerlik yüzdesi değildir.

@@ -67,3 +67,5 @@ social check "<render>"
 `video-analiz` skill'inin `references/kalite-kontrol.md` dosyasındaki "Yeniden kurma" listesini işaretle. `REVIEW.md` yaz: neyin birebir eşleştiği, neyin yaklaşık olduğu, kalan farklar ve sebepleri, karşılaştırma sayıları ve sürüm sürüm STYLECHECK.md sonucu.
 
 Kullanıcıya oynatılabilir MP4'ü, düzenlenebilir projenin yolunu ve kalan farkların kısa listesini ver. Bağımlılık kontrolü, genel bir demo veya başarılı bir export, videonun yeniden kurulduğunu kanıtlamaz.
+
+Yeni ölçümler ve bayraklar için WORKFLOWS.md içindeki “Ölçümlü analiz ve karşılaştırma” bölümünü okuyun. summary.json kaynak/yöntem/güven alanlarını ve atlanan ölçümleri koruyun; karşılaştırmada SSIM bir benzerlik yüzdesi değildir.

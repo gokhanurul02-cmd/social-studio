@@ -56,29 +56,8 @@ def analytics(args):
             rows = list(csv.DictReader(f, dialect=csv.Sniffer().sniff(sample, delimiters=',;\t')))
     if not isinstance(rows, list) or not rows:
         raise ValueError('Boş olmayan JSON dizi veya başlıklı CSV gerekli.')
-    def number(row, key):
-        raw = row.get(key)
-        if raw in (None, ''):
-            return None
-        value = float(raw)
-        if not math.isfinite(value) or value < 0:
-            raise ValueError(f'Geçersiz metrik: {key}={raw}')
-        return value
-    result = []
-    for row in rows:
-        parts = [number(row, k) for k in ['likes', 'comments', 'shares', 'saves']]
-        interactions = sum(x for x in parts if x is not None)
-        reach, views = number(row, 'reach'), number(row, 'views')
-        denominator = reach if reach and reach > 0 else views
-        result.append({**row, 'interactions': interactions,
-                       'engagement_rate': round(100*interactions/denominator, 4) if denominator else None,
-                       'engagement_denominator': 'reach' if reach and reach > 0 else 'views',
-                       'missing_metrics': [k for k, v in zip(['likes','comments','shares','saves'], parts) if v is None]})
-    ranked = sorted(result, key=lambda x: x['engagement_rate'] if x['engagement_rate'] is not None else -1,
-                    reverse=True)
-    save(args.out, {'posts': ranked, 'note': 'Etkileşim = beğeni+yorum+paylaşım+kaydetme. '
-         'Oran erişim varsa erişime, yoksa görüntülemeye bölünür; farklı paydalı oranları ayrı yorumlayın. '
-         'Eksik metrikler sıfır varsayılmadan işaretlenir. Küçük örneklem nedensellik kanıtlamaz.'})
+    from .performance import analyze_posts
+    save(args.out, analyze_posts(rows, path))
     print(Path(args.out).resolve())
 
 

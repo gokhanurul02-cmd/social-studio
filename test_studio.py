@@ -123,7 +123,7 @@ class StudioChecks(unittest.TestCase):
     def test_08_launch_arguments_are_not_shell_code(self):
         source = str(self.work/'source & example.mp4')
         for agent in ['codex','claude']:
-            with patch.object(studio,'run') as mocked:
+            with patch.object(studio,'run') as mocked, patch.object(studio.shutil, 'which', return_value=agent + '.exe'):
                 studio.launch(SimpleNamespace(agent=agent,source=source,prompt='Use literal $ and ` text'))
                 argv = mocked.call_args.args[0]
                 self.assertIsInstance(argv,list)
@@ -259,6 +259,47 @@ class StudioChecks(unittest.TestCase):
         self.assertIn('skipped', same['audio_comparison'])
         with self.assertRaises(FileExistsError):
             studio.compare(self.source, self.source, self.work / 'perceptual-same')
+
+
+    def test_18_performance_join_ratios_and_correlations(self):
+        from social_studio.performance import analyze_posts, pearson
+        source = self.work / 'export.json'
+        rows = []
+        for i in range(1, 4):
+            job = self.work / f'performance-{i}'
+            studio.save(job / 'summary.json', {'metrics': {'hook_event_density': {'value': i}}})
+            rows.append({'video_id': job.name, 'views': 100, 'likes': i,
+                         'avg_watch_time': i * 2, 'duration': 10, 'retention_3s': '65%',
+                         'completion_rate': .5, 'follows': 2})
+        report = analyze_posts(rows, source)
+        self.assertEqual(report['posts'][0]['retention_3s_ratio'], .65)
+        self.assertEqual(report['posts'][0]['follows_per_1000_views'], 20)
+        corr = next(r for r in report['correlations'] if r['feature'] == 'hook_event_density' and r['outcome'] == 'watch_ratio')
+        self.assertEqual(corr['n'], 3)
+        self.assertAlmostEqual(corr['r'], 1)
+        self.assertIsNone(pearson([(1, 2), (2, 3)])['r'])
+        self.assertIsNone(pearson([(1, 2)] * 3)['r'])
+        missing = analyze_posts([{'views': 0, 'avg_watch_time': 2}], source)['posts'][0]
+        self.assertIsNone(missing['watch_ratio'])
+        self.assertIsNone(missing['retention_3s_ratio'])
+        for row in [{'retention_3s': 65}, {'avg_watch_time': 'NaN'}, {'follows': -1}]:
+            with self.assertRaises(ValueError):
+                analyze_posts([row], source)
+
+    def test_19_audio_comparison_skips_warmup_bins_and_text_delta(self):
+        from social_studio.comparison_details import audio_comparison, timeline_comparison
+        import numpy as np
+        samples = np.random.default_rng(7).normal(size=16000)
+        data = {'audio': {'onsets': [.5], 'loudness_curve': [
+            {'momentary_lufs': None}, {'momentary_lufs': -20}]},
+            'scenes': [{'start': 0}, {'start': 1}],
+            'text': {'records': [{'text': 'Merhaba', 'start': .2, 'end': .8}]}}
+        with patch('social_studio.audio_analysis.pcm', return_value=samples):
+            result = audio_comparison('a', 'b', data, data, 30)
+        self.assertEqual(result['loudness_compared_bins'], 1)
+        self.assertEqual(result['loudness_curve_rmse_lu'], 0)
+        other = {**data, 'text': {'records': [{'text': 'Merhaba', 'start': .3, 'end': .9}]}}
+        self.assertAlmostEqual(timeline_comparison(data, other, 30)['text']['mean_absolute_delta_frames'], 3)
 
 
 if __name__ == '__main__':

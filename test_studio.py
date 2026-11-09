@@ -230,6 +230,19 @@ class StudioChecks(unittest.TestCase):
         self.assertLessEqual(len(studio.load(out / 'frames.json')), 2)
         self.assertTrue((out / 'visual_analysis.json').is_file())
 
+    def test_16_summary_provenance_and_unmeasured_values(self):
+        out = self.work / 'summary-test'
+        with patch('social_studio.ocr.recognizer', return_value=(None, None, ['fixture absent'])):
+            studio.analyze(str(self.source), out, speech=False)
+        summary = studio.load(out / 'summary.json')
+        self.assertEqual(summary['metrics']['hook_cuts']['value'], 0)
+        self.assertIsNone(summary['metrics']['words_per_minute']['value'])
+        self.assertIsNone(summary['metrics']['hook_event_density']['value'])
+        self.assertIn('ocr', summary['skipped'])
+        for row in summary['metrics'].values():
+            self.assertTrue(all(key in row for key in ['method', 'confidence', 'source']))
+        self.assertTrue((out / 'summary.md').exists())
+
 
 if __name__ == '__main__':
     os.environ['PYTHONUTF8']='1'

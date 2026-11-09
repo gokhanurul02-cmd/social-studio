@@ -95,10 +95,14 @@ def analyze(value, out=None, speech=True, model='large-v3-turbo', language='tr',
     manifest['measurements']['visual']['file'] = 'visual_analysis.json'
     manifest['sampling'] = {'max_frames': max_frames, 'actual_frames': len(entries)}
     save(job / 'analysis.json', manifest)
+    from .summary import build_summary
+    build_summary(job)
     (job / 'REBUILD.md').write_text(
         f'# Referans yeniden kurma\n\nKaynak: {source}\n\n'
         f'{info["width"]} × {info["height"]}, {info["fps"]} fps, {info["duration"]:.3f} s.\n\n'
-        'Agent: contact-sheet.jpg ve kesme çevresindeki ardışık kareleri incele. '
+        'Agent: summary.json ve summary.md içindeki ölçüm/kaynak/yöntem/güven kayıtlarıyla başla. '
+        'onscreen_text.json, audio_analysis.json ve visual_analysis.json ayrıntıları içerir. '
+        'contact-sheet.jpg ve kesme çevresindeki ardışık kareleri incele. '
         'scenes.json ve transcript.json ile katman, metin, font, renk, giriş/çıkış, '
         'easing ve ses vurgularını ölç. Ölçülmemiş özellikleri tahmin olarak belirt. '
         'Kaynağı tek video katmanı yapıp yeniden kurulduğunu iddia etme. '

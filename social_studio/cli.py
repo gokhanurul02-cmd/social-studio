@@ -167,6 +167,8 @@ def main():
     c.add_argument('--lufs', type=float, default=-16); c.add_argument('--peak', type=float, default=-1.5)
     c = s.add_parser('compare', help='Kaynak/render bÃ¼tÃ¼n kare farklarÄ± ve gÃ¶rsel rapor')
     c.add_argument('source'); c.add_argument('render'); c.add_argument('--out', required=True)
+    c.add_argument('--source-analysis')
+    c.add_argument('--render-analysis')
     c = s.add_parser('plan', help='Agentin dolduracaÄŸÄ± taslak iÃ§erik takvimi')
     c.add_argument('--brand', required=True); c.add_argument('--days', type=int, default=30)
     c.add_argument('--start', default=datetime.now(IST).date().isoformat()); c.add_argument('--out', required=True)
@@ -204,7 +206,7 @@ def main():
         if not (-36 <= a.lufs <= -5 and -12 <= a.peak <= 0):
             raise ValueError('LUFS -36â€¦-5 ve peak -12â€¦0 aralÄ±ÄŸÄ±nda olmalÄ±.')
         master(a)
-    elif a.command == 'compare': compare(a.source, a.render, a.out)
+    elif a.command == 'compare': compare(a.source, a.render, a.out, a.source_analysis, a.render_analysis)
     elif a.command == 'plan':
         if not 1 <= a.days <= 366: raise ValueError('--days 1â€“366 aralÄ±ÄŸÄ±nda olmalÄ±.')
         calendar(a)

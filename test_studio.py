@@ -243,6 +243,23 @@ class StudioChecks(unittest.TestCase):
             self.assertTrue(all(key in row for key in ['method', 'confidence', 'source']))
         self.assertTrue((out / 'summary.md').exists())
 
+    def test_17_perceptual_and_audio_timing(self):
+        from social_studio.perceptual import ssim, audio_delay, match_times
+        import numpy as np
+        image = np.random.default_rng(4).integers(0, 255, (80, 80, 3), dtype=np.uint8)
+        self.assertAlmostEqual(ssim(image, image), 1)
+        self.assertLess(ssim(image, 255 - image), 0)
+        source = np.random.default_rng(5).normal(size=16000)
+        target = np.concatenate([np.zeros(1600), source])
+        self.assertAlmostEqual(audio_delay(source, target)['delay_ms'], 100, delta=1)
+        self.assertAlmostEqual(match_times([1, 2], [1.1, 2.1], 30)['mean_absolute_delta_frames'], 3)
+        same = studio.compare(self.source, self.source, self.work / 'perceptual-same')
+        self.assertAlmostEqual(same['mean_ssim'], 1)
+        self.assertTrue(same['scene_scores'])
+        self.assertIn('skipped', same['audio_comparison'])
+        with self.assertRaises(FileExistsError):
+            studio.compare(self.source, self.source, self.work / 'perceptual-same')
+
 
 if __name__ == '__main__':
     os.environ['PYTHONUTF8']='1'

@@ -21,15 +21,21 @@ from fractions import Fraction
 
 
 from .media import *
-def compare(a, b, out):
+def compare(a, b, out, source_analysis=None, render_analysis=None):
     from PIL import Image, ImageChops, ImageStat, ImageDraw
     out = Path(out).resolve()
+    if out.exists() and any(out.iterdir()):
+        raise FileExistsError('Comparison output is not empty')
     out.mkdir(parents=True, exist_ok=True)
+    with (out / '.social-job').open('x') as claim:
+        claim.write('comparison')
     ia, ib = video_info(a), video_info(b)
     duration = min(ia['duration'], ib['duration'])
     import cv2
     import numpy as np
     ca, cb = cv2.VideoCapture(str(a)), cv2.VideoCapture(str(b))
+    from .perceptual import ssim, OptionalMetrics
+    optional = OptionalMetrics()
     scores = []
     try:
         # Inspect the whole overlapping timeline, downscaled to bound CPU and memory.
@@ -51,13 +57,14 @@ def compare(a, b, out):
             mse = float(np.mean((va-vb)**2))
             scores.append({'frame': i, 'time': i / float(Fraction(ia['fps'])),
                            'mae_255': float(np.mean(np.abs(va-vb))),
-                           'psnr_db': 99.0 if mse == 0 else 10 * math.log10(255**2/mse)})
+                           'psnr_db': 99.0 if mse == 0 else 10 * math.log10(255**2/mse),
+                           'ssim': ssim(va, vb), **optional.score(va, vb)})
     finally:
         ca.release()
         cb.release()
     if not scores:
         raise RuntimeError('Karşılaştırılabilir kare bulunamadı.')
-    worst = sorted(scores, key=lambda x: x['mae_255'], reverse=True)
+    worst = sorted(scores, key=lambda x: x['ssim'])
     selected = []
     for row in worst:
         if all(abs(row['time']-x['time']) >= 0.35 for x in selected):
@@ -85,12 +92,35 @@ def compare(a, b, out):
               'compared_frames': len(scores), 'mean_mae_255': sum(s['mae_255'] for s in scores)/len(scores),
               'worst_moments': selected, 'frame_scores': scores,
               'note': 'Görüntü farkı ölçülür; ses senkronu ve anlamsal benzerlik agent tarafından ayrıca incelenir.'}
+    from .comparison_details import analysis_bundle, timeline_comparison, audio_comparison
+    left = analysis_bundle(a, out / 'source-analysis', source_analysis)
+    right = left if Path(a).resolve() == Path(b).resolve() else analysis_bundle(b, out / 'render-analysis', render_analysis)
+    report['mean_ssim'] = sum(row['ssim'] for row in scores) / len(scores)
+    report['metric_methods'] = {
+        'ssim': {'method': 'OpenCV 11x11 Gaussian SSIM, sigma 1.5, RGB channels averaged', 'confidence': 'structural measurement'},
+        **optional.status}
+    report['scene_scores'] = []
+    for index, scene in enumerate(left['scenes']):
+        rows = [row for row in scores if scene['start'] <= row['time'] < scene['end']]
+        if rows:
+            scene_score = {'scene': index, 'start': scene['start'], 'end': scene['end'], 'compared_frames': len(rows),
+                           'method': 'reference-time bins; no semantic scene alignment', 'confidence': 'measurement'}
+            for name in ['ssim', 'mae_255', 'psnr_db', 'lpips', 'clip_cosine']:
+                values = [row[name] for row in rows if name in row]
+                scene_score['mean_' + name] = sum(values) / len(values) if values else None
+            report['scene_scores'].append(scene_score)
+    report['audio_comparison'] = audio_comparison(a, b, left, right, float(Fraction(ia['fps'])))
+    report['timing_comparison'] = timeline_comparison(left, right, float(Fraction(ia['fps'])))
+    report['note'] += ' No measurement is a similarity percentage. SSIM, LPIPS and CLIP measure different properties.'
     save(out/'comparison.json', report)
     (out/'index.html').write_text('<!doctype html><meta charset="utf-8"><title>Video karşılaştırması</title>'
         '<style>body{background:#10151f;color:white;font:18px system-ui;max-width:1100px;margin:40px auto}'
         'img{max-width:100%}</style><h1>Kaynak / Render / Fark</h1>' +
         f'<p>{len(scores)} kare. Ortalama piksel farkı: {report["mean_mae_255"]:.3f} / 255. '
-        f'Süre farkı: {report["duration_delta"]:.4f}s.</p>' + ''.join(
+        f'Süre farkı: {report["duration_delta"]:.4f}s. SSIM: {report["mean_ssim"]:.4f}.</p>'
+        '<p>Hiçbir ölçüm benzerlik yüzdesi değildir. En kötü anlar en düşük SSIM değerine göre seçildi.</p>'
+        '<table><tr><th>Sahne</th><th>Başlangıç</th><th>Son</th><th>SSIM</th><th>MAE</th></tr>' +
+        ''.join(f'<tr><td>{row["scene"]}</td><td>{row["start"]:.3f}</td><td>{row["end"]:.3f}</td><td>{row["mean_ssim"]:.4f}</td><td>{row["mean_mae_255"]:.3f}</td></tr>' for row in report['scene_scores']) + '</table>' + ''.join(
         f'<img src="{x.name}" alt="Karşılaştırma">' for x in sheet_items), encoding='utf-8')
     print(out/'index.html')
     return report

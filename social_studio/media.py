@@ -22,7 +22,16 @@ from fractions import Fraction
 
 ROOT = Path(__file__).resolve().parents[1]
 WORKFLOW_PATH = (ROOT / 'WORKFLOWS.md').as_posix()
-EAR = Path(os.environ.get('SOCIAL_EARSHOT', ROOT.parent / 'earshot-main'))
+def find_earshot():
+    configured = os.environ.get('SOCIAL_EARSHOT')
+    if configured:
+        return Path(configured).expanduser()
+    # Discover a local checkout rather than require one fixed sibling directory.
+    candidates = [ROOT / 'earshot-main', *sorted(ROOT.parent.glob('earshot*'))]
+    return next((p for p in candidates if (p / 'run.py').is_file()), ROOT / 'earshot-main')
+
+
+EAR = find_earshot()
 
 def venv_python(folder):
     return Path(folder) / ('Scripts/python.exe' if os.name == 'nt' else 'bin/python')

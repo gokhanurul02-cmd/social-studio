@@ -135,6 +135,11 @@ class StudioChecks(unittest.TestCase):
         with patch.dict(os.environ, {'SOCIAL_FFMPEG': str(self.source)}):
             self.assertEqual(media.resolve_tool('ffmpeg'), self.source)
         self.assertIn('Scripts' if os.name == 'nt' else 'bin', str(media.venv_python(self.work)))
+        earshot = self.work / 'earshot-portable'
+        earshot.mkdir()
+        (earshot / 'run.py').write_text('# fixture', encoding='utf-8')
+        with patch.object(media, 'ROOT', self.work / 'tool'), patch.dict(os.environ, {'SOCIAL_EARSHOT': ''}):
+            self.assertEqual(media.find_earshot(), earshot)
         for file in (studio.ROOT / 'agent-skills').rglob('SKILL.md'):
             self.assertTrue(file.read_text(encoding='utf-8').startswith('---'))
 

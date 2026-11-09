@@ -6,4 +6,5 @@ yt-dlp[default]
 Pillow>=11,<13
 numpy>=1.26,<3
 opencv-python>=4.9,<5
+# Optional engines and version ranges: requirements-analysis.txt
 elevenlabs>=2,<3

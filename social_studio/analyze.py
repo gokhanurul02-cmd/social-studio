@@ -23,7 +23,9 @@ from fractions import Fraction
 from .media import *
 from .audio import *
 def analyze(value, out=None, speech=True, model='large-v3-turbo', language='tr', interval=1.0,
-            scene_threshold=3.0, min_scene_seconds=0.3):
+            scene_threshold=3.0, min_scene_seconds=0.3, ocr_fps=4.0, ocr_threshold=3.0):
+    if not (0 < ocr_fps <= 30 and ocr_threshold >= 0):
+        raise ValueError('ocr-fps must be in (0,30], ocr-threshold >= 0')
     job = Path(out).resolve() if out else ROOT / 'jobs' / f'{stamp()}-{slug(Path(value).stem)}'
     if job.exists() and any(job.iterdir()):
         raise FileExistsError(f'Analiz klasörü boş değil; önceki işi korumak için yeni klasör seçin: {job}')
@@ -60,16 +62,25 @@ def analyze(value, out=None, speech=True, model='large-v3-turbo', language='tr',
     # Keep the overview compact; full cut-adjacent frames remain available individually.
     overview = entries if len(entries) <= 60 else [entries[round(i * (len(entries)-1) / 59)] for i in range(60)]
     contact_sheet([(f'{x["time"]:.3f}s / f{x["frame"]}', x['file']) for x in overview], job / 'contact-sheet.jpg')
+    speech_status = {}
     if info['has_audio']:
         run([FFMPEG, '-v', 'error', '-y', '-i', source, '-vn', '-ac', '1', '-ar', '16000',
              job / 'audio.wav'], capture=True)
         if speech:
-            transcribe(job / 'audio.wav', job, model, language)
+            try:
+                transcribe(job / 'audio.wav', job, model, language)
+            except (ImportError, OSError, RuntimeError) as exc:
+                speech_status = {'skipped': str(exc)}
     manifest = {'created': datetime.now(IST).isoformat(), 'source': str(source),
                 'video': info, 'scene_count': len(scenes), 'speech_requested': speech,
                 'transcript_exists': (job / 'transcript.json').is_file(),
                 'scene_detector': {'engine':'PySceneDetect AdaptiveDetector','adaptive_threshold':3.0,
                                    'min_content_val':scene_threshold,'min_scene_seconds':min_scene_seconds}}
+    from .ocr import scan_text
+    text_report = scan_text(source, info, job / 'onscreen_text.json', ocr_fps, ocr_threshold)
+    manifest['measurements'] = {'ocr': {k: text_report[k] for k in ['method', 'confidence', 'skipped'] if k in text_report}}
+    manifest['measurements']['ocr']['file'] = 'onscreen_text.json'
+    manifest['transcription'] = speech_status
     save(job / 'analysis.json', manifest)
     (job / 'REBUILD.md').write_text(
         f'# Referans yeniden kurma\n\nKaynak: {source}\n\n'

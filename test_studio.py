@@ -178,6 +178,22 @@ class StudioChecks(unittest.TestCase):
             studio.handoff(args)
         self.assertFalse(Path(args.out).exists())
 
+    def test_13_ocr_merging_and_optional_skip(self):
+        from social_studio.ocr import scan_text, describe_text
+        import numpy as np
+        image = np.zeros((160, 96, 3), dtype=np.uint8)
+        row = {'text': 'HELLO', 'confidence': .9, 'quad': [[1, 1], [90, 1], [90, 20], [1, 20]]}
+        item = describe_text(row, image, 0, .25)
+        self.assertIn('top_12_percent', item['safe_area_violations'])
+        self.assertAlmostEqual(item['text_height_ratio'], 19 / 160)
+        with patch('social_studio.ocr.recognizer', return_value=('fixture', lambda image: [row], [])):
+            report = scan_text(self.source, studio.video_info(self.source), self.work / 'ocr.json')
+        self.assertEqual(len(report['records']), 1)
+        self.assertEqual(report['records'][0]['end'], 1)
+        with patch('social_studio.ocr.recognizer', return_value=(None, None, ['not installed'])):
+            report = scan_text(self.source, studio.video_info(self.source), self.work / 'ocr-skip.json')
+        self.assertIn('skipped', report)
+
 
 if __name__ == '__main__':
     os.environ['PYTHONUTF8']='1'

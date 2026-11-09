@@ -26,11 +26,16 @@ def srt_time(value):
     return f'{ms // 3600000:02}:{ms // 60000 % 60:02}:{ms // 1000 % 60:02},{ms % 1000:03}'
 
 
-def transcribe(source, out, model='large-v3-turbo', language='tr', device='cpu'):
+def transcribe(source, out, model='large-v3-turbo', language='tr', device='cpu', allow_model_download=False):
     from faster_whisper import WhisperModel
+    if any((out / name).exists() for name in ['transcript.json', 'transcript.txt', 'captions.srt']):
+        raise FileExistsError('Transcript output already exists')
+    if allow_model_download:
+        print(f'Model download enabled; weights will be cached: {model}', flush=True)
     out.mkdir(parents=True, exist_ok=True)
     print(f'Konuşma çözülüyor: {model}, {device}', flush=True)
-    model_obj = WhisperModel(model, device=device, compute_type='int8' if device == 'cpu' else 'float16')
+    model_obj = WhisperModel(model, device=device, compute_type='int8' if device == 'cpu' else 'float16',
+                             local_files_only=not allow_model_download)
     segments, info = model_obj.transcribe(str(source), language=None if language == 'auto' else language,
                                            word_timestamps=True, vad_filter=True, beam_size=5)
     rows = []

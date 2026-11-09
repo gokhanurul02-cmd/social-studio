@@ -141,9 +141,12 @@ def main():
     a.add_argument('--scene-threshold', type=float, default=3.0,
                    help='Sabit zeminli grafiklerde 3; Ã§ok fazla kesme algÄ±lanÄ±rsa artÄ±rÄ±n')
     a.add_argument('--min-scene', type=float, default=0.3, help='En kÄ±sa sahne sÃ¼resi (saniye)')
+    a.add_argument('--ocr-fps', type=float, default=4.0)
+    a.add_argument('--ocr-threshold', type=float, default=3.0)
     t = s.add_parser('transcribe', help='Kelime zamanlÄ± JSON, TXT ve SRT')
     t.add_argument('source'); t.add_argument('--out', required=True)
     t.add_argument('--model', default='large-v3-turbo'); t.add_argument('--language', default='tr')
+    t.add_argument('--allow-model-download', action='store_true')
     t.add_argument('--device', choices=['cpu','cuda'], default='cpu')
     v = s.add_parser('voice', help='TÃ¼rkÃ§e seslendirme')
     g = v.add_mutually_exclusive_group(required=True); g.add_argument('--text'); g.add_argument('--file')
@@ -183,8 +186,8 @@ def main():
     elif a.command == 'analyze':
         if not (0.1 <= a.scene_threshold <= 100 and 0.05 <= a.min_scene <= 60 and a.interval > 0):
             raise ValueError('scene-threshold 0.1â€¦100, min-scene 0.05â€¦60, interval > 0 olmalÄ±.')
-        analyze(a.source, a.out, not a.no_speech, a.model, a.language, a.interval,a.scene_threshold,a.min_scene)
-    elif a.command == 'transcribe': transcribe(Path(a.source).resolve(), Path(a.out).resolve(), a.model, a.language, a.device)
+        analyze(a.source, a.out, not a.no_speech, a.model, a.language, a.interval,a.scene_threshold,a.min_scene,a.ocr_fps,a.ocr_threshold)
+    elif a.command == 'transcribe': transcribe(Path(a.source).resolve(), Path(a.out).resolve(), a.model, a.language, a.device, a.allow_model_download)
     elif a.command == 'voice': voice(a)
     elif a.command == 'hf': hf(a.args)
     elif a.command == 'postiz': node_tool('postiz', 'postiz', a.args)

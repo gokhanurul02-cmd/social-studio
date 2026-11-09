@@ -1,0 +1,9 @@
+# Optional local measurement engines. Models must be bundled or cached.
+rapidocr-onnxruntime>=1.3,<2
+librosa>=0.10,<0.12
+scikit-image>=0.22,<0.27
+pytesseract>=0.3.10,<0.4
+# Optional perceptual models are installed separately with compatible torch builds:
+# lpips>=0.1.4,<0.2
+# open-clip-torch>=2.24,<4
+# paddleocr>=2.7,<3  (requires local det/rec model directories)

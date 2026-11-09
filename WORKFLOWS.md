@@ -1,10 +1,10 @@
 # Agent production workflows
 
-Tool root: `C:/Users/birlik grup/Documents/Codex/tools/social-studio`.
+Tool root: `.`.
 PowerShell reliable entrypoint (also works before PATH refresh):
 
 ```powershell
-& 'C:/Users/birlik grup/Documents/Codex/tools/social-studio/social.cmd' --help
+& './social.cmd' --help
 ```
 
 `social` is a local tool CLI. Codex or Claude supplies editorial reasoning and writes editable
@@ -42,7 +42,7 @@ the user asks for the same video. If the user asks to adapt it, retain the usefu
 change the requested content. Write `SPEC.md` with measured shot boundaries and layer/source table.
 For an exact remake, the supplied reference outranks saved brand templates. Use existing brand
 skills only when the user requests a brand adaptation. Those reference sources live in
-`C:/Users/birlik grup/.codex/skills/`.
+`agent-skills/codex/`.
 
 Choose the engine from the actual reference/source (Remotion, HyperFrames, canvas, Three.js),
 not from an installed template. Match a representative scene before extending it to the film.
@@ -95,7 +95,7 @@ not invented replacements. Existing brand skills supply approved fonts/layouts.
 Create a job; write script and SPEC; record voice once if requested; derive actual speech timing
 with `social transcribe`; compose to the voice. Follow the same check/snapshot/render workflow.
 Use Remotion instead when React/source compatibility calls for it. Read
-`C:/Users/birlik grup/.agents/skills/remotion-best-practices/SKILL.md`; `social remotion` wraps its CLI.
+`agent-skills/codex/remotion-best-practices/SKILL.md`; `social remotion` wraps its CLI.
 
 ## Voice and sound
 
@@ -175,3 +175,48 @@ files modified in the previous five seconds. Stop with Ctrl+C. Its local journal
 file identities. It prepares analysis, not autonomous video recreation. To rebuild the newest
 analysis, invoke social-rebuild in a local Codex or Claude session. Do not imply a watcher is
 running unless its process has actually been started and remains alive.
+
+
+## Ölçümlü analiz ve karşılaştırma (9 Kasım 2026)
+
+Windows: `social analyze video.mp4 --out jobs/yeni-analiz --max-frames 120`.
+Linux/macOS: sanal ortam Python'u ile `python studio.py analyze video.mp4 --out jobs/yeni-analiz`.
+`--ocr-fps 4` ve `--ocr-threshold` ekran metni taramasını yönetir; kontak sayfası en çok 60 hücredir.
+Her çıktı için yeni, boş klasör kullanın; mevcut işler korunur.
+
+Önce `summary.md`/`summary.json`, sonra ilgili ölçüm dosyasını okuyun:
+- `onscreen_text.json`: birleştirilmiş metinler, normalize kutular, güvenli alan, yaklaşık yazı boyutu/renk.
+- `audio_analysis.json`: 100 ms RMS ve momentary LUFS, sessizlik, BPM/beat/onset ve kesim hizası.
+- `visual_analysis.json`: kesim sıklığı, optik akış/kamera tahmini, sahne paletleri ve varlık tespiti.
+- `summary.json`: hook/konuşma/metin ölçümleri; her değerde kaynak, yöntem ve güven.
+- `TIMELINE.md`/`timeline.json` mevcutsa ayrıntılı olay sırası; `REBUILD.md` üretim için başlangıçtır.
+
+Yerel dosya analizinde varsayılan model indirmesi yoktur. Whisper önbellekte yoksa konuşma adımı
+atlanır ve sebebi yazılır. İndirmeyi açıkça etkinleştirmek için analiz/transcribe komutuna
+`--allow-model-download` ekleyin; ağırlıklar Hugging Face önbelleğine kaydedilir. URL girdisi ise
+videoyu indirmek için ağ kullanır. Seslendirme gibi çevrimiçi araçlar ayrı iş akışlarıdır.
+
+Çekirdek: `pip install -r requirements.txt`. İsteğe bağlı: `pip install -r requirements-analysis.txt`.
+OCR: yerel ağırlıklı RapidOCR/PaddleOCR veya kurulu Tesseract ve `tur`/`eng` dil verileri.
+Motorun mevcut dillerini kontrol edin; İngilizce model Türkçe doğruluğu garantilemez.
+Librosa yoksa ffmpeg loudness ve kaba RMS-onset yedeği kullanılır, BPM uydurulmaz.
+Yüz/kişi detektörü olmayan OpenCV dağıtımlarında o ölçüm atlanır. `social doctor` paketleri listeler.
+`SOCIAL_FFMPEG`/`SOCIAL_FFPROBE` > `bin/` > Earshot > PATH; isteğe bağlı `SOCIAL_EARSHOT` ve `SOCIAL_FONT`.
+
+`social compare kaynak.mp4 sonuc.mp4 --out jobs/yeni-karsilastirma` MAE/PSNR yanında SSIM,
+sahne bazlı ölçümler, ses gecikmesi/korelasyonu ve kesim/metin zaman sapması üretir.
+Var olan analizleri yeniden kullanmak için `--source-analysis jobs/kaynak-analiz`
+ve `--render-analysis jobs/sonuc-analiz` ekleyin. Video özellikleri doğrulanır; aynı boyuttaki farklı
+videoları karıştırmamak için doğru klasörü seçin. HTML en düşük SSIM anlarını gösterir.
+LPIPS için torch+lpips ve önceden önbelleğe alınmış AlexNet ağırlıkları; CLIP için torch+open_clip
+ve `SOCIAL_CLIP_WEIGHTS` ile yerel ViT-B-32 ağırlık dosyası gerekir. Karşılaştırma ağırlık indirmez.
+Hiçbiri benzerlik yüzdesi değildir. Piksel/algı ölçümleri estetik kaliteyi veya yeniden üretilebilirliği kanıtlamaz.
+
+Performans girdisine `avg_watch_time,duration,retention_3s,completion_rate,follows,video_id,job`
+alanları eklenebilir. Süreler saniye; retention/completion 0–1 oranı veya `65%` biçimindedir.
+`watch_ratio=avg_watch_time/duration`; döngülü izlenmede 1'i aşabilir. Tutma oranı ortalama izlenmeden
+hesaplanamaz, dışa aktarımda bulunmalıdır. `job` önceliklidir; CSV/JSON dosyasına göre klasör veya
+`jobs/<video_id>/summary.json` açık adla eşleşir. Bulanık isim eşleştirmesi yapılmaz.
+`social analytics performans.csv --out jobs/performans-v2.json` ölçümleri aynı satıra ekler;
+Pearson raporu her çiftin `n` sayısını verir. Üçten az çift veya sabit değişken için korelasyon null'dır.
+Korelasyon nedensellik kanıtlamaz; dil/kanal/konu karışımı ve küçük örneklem yanıltabilir.

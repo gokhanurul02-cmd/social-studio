@@ -1,15 +1,21 @@
 ---
 name: social-rebuild
-description: "Recreate a reference video as editable code and a finished MP4, with measured comparison."
+description: "Recreate a reference video as editable code and a finished MP4, with measured comparison. Redirects to videoyu-kopyala."
 ---
 
-# social-rebuild
+# social-rebuild → videoyu-kopyala
 
-This is the local social-studio integration.
+Bu beceri artık yalnızca bir yönlendirmedir. Belirli bir referans videonun aynısını kurmak için
+`agent-skills/codex/videoyu-kopyala/SKILL.md` adımlarını uygula (analiz → temsilî sahne → 540p önizleme
+döngüsü → render → `social compare` + `social analyze` + `social stylecheck` → düzeltme → REVIEW.md).
 
-Read `C:/Users/birlik grup/Documents/Codex/tools/social-studio/WORKFLOWS.md` and only its relevant workflow sections.
-Tool entrypoint: `C:/Users/birlik grup/Documents/Codex/tools/social-studio/social.cmd`. Quote its full path in PowerShell.
+Analiz yoksa önce `video-analiz` (agent-skills/claude/video-analiz). Araç: `./social.cmd`.
+Kanıtsız bağlantı, render veya sadakat iddiası yok.
 
-Complete Rebuild a reference from analysis through editable source, actual render, comparison and fixes. Finish autonomously with a playable MP4. If the source is an analyzed inbox job, reuse its analysis.
-
-Use the actual user request and attached files as inputs. Preserve approved brand assets and create versioned job outputs. Do not claim account connection, a successful render, or reference fidelity without evidence.
+Ölçümlü analizde önce `summary.json`/`summary.md`, sonra `onscreen_text.json`,
+`audio_analysis.json`, `visual_analysis.json` okuyun. `analysis.json` içindeki skipped
+sebeplerini aktarın; eksik ölçümü sıfır veya başarı saymayın. `--max-frames` varsayılanı 120,
+OCR taraması `--ocr-fps 4`; yerel analiz varsayılan olarak ağırlık indirmez.
+Karşılaştırmada `--source-analysis` / `--render-analysis` ile mevcut analizleri kullanın.
+SSIM/LPIPS/CLIP benzerlik yüzdesi değildir; sahne tablosu, ses gecikmesi ve kesim/metin
+sapmalarını inceleyin. Yeni sürüm klasörü kullanın. Ayrıntılar: WORKFLOWS.md ölçümlü analiz bölümü.

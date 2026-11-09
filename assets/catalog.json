@@ -1,0 +1,714 @@
+{
+  "schema": 1,
+  "notes": "Paths are relative to the repo root. Binaries are git-ignored; run `python assets/fetch_assets.py` to download and verify (sha256). Units: metres after normalisation by templates/three-crowd/crowd.js loadCharacter(): feet on y=0, facing +Z, size from `target`.",
+  "assets": [
+    {
+      "id": "horse_brown_quaternius",
+      "kind": "character",
+      "species": "horse",
+      "title": "Horse (Quaternius, Animated Animal Pack)",
+      "file": "assets/characters/horse_brown_quaternius.glb",
+      "url": "https://static.poly.pizza/d37dbc87-ca61-4b2c-a2da-d2f0c4240bef.glb",
+      "source_page": "https://poly.pizza/m/qvTrSG9pZF",
+      "author": "Quaternius",
+      "license": "CC0-1.0",
+      "attribution_required": false,
+      "sha256": "fae7a7ec91e0d6a33554efb896fac9c4e8c632644183bcb8cc962f673d3ce609",
+      "bytes": 1108124,
+      "forward": "+z",
+      "target": {
+        "height": 2.3
+      },
+      "animations": [
+        "Attack_Headbutt",
+        "Attack_Kick",
+        "Death",
+        "Eating",
+        "Gallop",
+        "Gallop_Jump",
+        "Idle",
+        "Idle_2",
+        "Idle_Headlow",
+        "Idle_HitReact_Left",
+        "Idle_HitReact_Right",
+        "Jump_toIdle",
+        "Walk"
+      ],
+      "clip_durations_s": {
+        "Attack_Headbutt": 1,
+        "Attack_Kick": 1,
+        "Death": 1,
+        "Eating": 6,
+        "Gallop_Jump": 1.458,
+        "Gallop": 0.583,
+        "Idle_HitReact_Left": 0.667,
+        "Idle_HitReact_Right": 0.667,
+        "Jump_toIdle": 1.708,
+        "Walk": 1.167,
+        "Idle_Headlow": 3.333,
+        "Idle_2": 3.333,
+        "Idle": 3.333
+      },
+      "scale_to_target": 0.4758,
+      "size_m": [
+        0.672,
+        2.3,
+        2.708
+      ],
+      "tris": 2182,
+      "walk_clip": "Walk",
+      "foot_height_m": -0.015,
+      "vat_vertices": 4400,
+      "crowd_lod": {
+        "hero": "Actor (SkeletonUtils.clone + AnimationMixer.setTime)",
+        "far": "VAT crowd (templates/three-crowd VATCrowd) for all non-hero instances; hero <= ~6 Actor clones",
+        "suggested_max_instances": 3000
+      }
+    },
+    {
+      "id": "horse_white_quaternius",
+      "kind": "character",
+      "species": "horse",
+      "title": "White Horse (Quaternius, Animated Animal Pack)",
+      "file": "assets/characters/horse_white_quaternius.glb",
+      "url": "https://static.poly.pizza/3edc2bd9-3378-4b43-a50d-d5e1f858562b.glb",
+      "source_page": "https://poly.pizza/m/bEdE4rmZy9",
+      "author": "Quaternius",
+      "license": "CC0-1.0",
+      "attribution_required": false,
+      "sha256": "18e866e6ea2789701d0c1948bcedabe10dd0065507e15a1721d81b6fe61606b1",
+      "bytes": 1109444,
+      "forward": "+z",
+      "target": {
+        "height": 2.3
+      },
+      "animations": [
+        "Attack_Headbutt",
+        "Attack_Kick",
+        "Death",
+        "Eating",
+        "Gallop",
+        "Gallop_Jump",
+        "Idle",
+        "Idle_2",
+        "Idle_Headlow",
+        "Idle_HitReact_Left",
+        "Idle_HitReact_Right",
+        "Jump_toIdle",
+        "Walk"
+      ],
+      "clip_durations_s": {
+        "Attack_Headbutt": 1,
+        "Attack_Kick": 1,
+        "Death": 1,
+        "Eating": 6,
+        "Gallop_Jump": 1.458,
+        "Gallop": 0.583,
+        "Idle_HitReact_Left": 0.667,
+        "Idle_HitReact_Right": 0.667,
+        "Jump_toIdle": 1.708,
+        "Walk": 1.167,
+        "Idle_Headlow": 3.333,
+        "Idle_2": 3.333,
+        "Idle": 3.333
+      },
+      "scale_to_target": 0.4734,
+      "size_m": [
+        0.668,
+        2.3,
+        2.713
+      ],
+      "tris": 2182,
+      "walk_clip": "Walk",
+      "foot_height_m": -0.015,
+      "vat_vertices": 4400,
+      "crowd_lod": {
+        "hero": "Actor (SkeletonUtils.clone + AnimationMixer.setTime)",
+        "far": "VAT crowd (templates/three-crowd VATCrowd) for all non-hero instances; hero <= ~6 Actor clones",
+        "suggested_max_instances": 3000
+      }
+    },
+    {
+      "id": "horse_atlas_quaternius",
+      "kind": "character",
+      "species": "horse",
+      "title": "Horse (Quaternius, textured atlas, 17 bones)",
+      "file": "assets/characters/horse_atlas_quaternius.glb",
+      "url": "https://static.poly.pizza/52b9bf67-bf41-4aec-a4ff-e93e630289f2.glb",
+      "source_page": "https://poly.pizza/m/D3hAeqeDBE",
+      "author": "Quaternius",
+      "license": "CC0-1.0",
+      "attribution_required": false,
+      "sha256": "513a1fac7ebccb01496108196601e20e59d87932c1122b2e052b837f7f2f5085",
+      "bytes": 237360,
+      "forward": "+z",
+      "target": {
+        "height": 2.0
+      },
+      "animations": [
+        "Death",
+        "Headbutt",
+        "Idle",
+        "Idle_Eating",
+        "Jump_Loop",
+        "Jump_Start",
+        "Run",
+        "Walk"
+      ],
+      "clip_durations_s": {
+        "Death": 0.875,
+        "Headbutt": 0.625,
+        "Idle": 6.667,
+        "Idle_Eating": 3.333,
+        "Jump_Loop": 1,
+        "Jump_Start": 0.25,
+        "Run": 0.667,
+        "Walk": 1
+      },
+      "scale_to_target": 0.6755,
+      "size_m": [
+        0.705,
+        2,
+        2.275
+      ],
+      "tris": 2652,
+      "walk_clip": "AnimalArmature|AnimalArmature|AnimalArmature|Walk",
+      "foot_height_m": -0.035,
+      "vat_vertices": 2118,
+      "crowd_lod": {
+        "hero": "Actor (SkeletonUtils.clone + AnimationMixer.setTime)",
+        "far": "VAT crowd (templates/three-crowd VATCrowd) for all non-hero instances; hero <= ~6 Actor clones",
+        "suggested_max_instances": 3000
+      }
+    },
+    {
+      "id": "cat_atlas_quaternius",
+      "kind": "character",
+      "species": "cat",
+      "title": "Cat (Quaternius, textured atlas, 16 bones)",
+      "file": "assets/characters/cat_atlas_quaternius.glb",
+      "url": "https://static.poly.pizza/67f5e3fe-37ee-4c86-95c8-d269d8c9f8ba.glb",
+      "source_page": "https://poly.pizza/m/qKICY6xla2",
+      "author": "Quaternius",
+      "license": "CC0-1.0",
+      "attribution_required": false,
+      "sha256": "842c5f96c480b9a7800994345ed83be5e9ba5fc8e18be633f2b7cfe09cf8fef7",
+      "bytes": 238672,
+      "forward": "+z",
+      "target": {
+        "height": 0.35
+      },
+      "animations": [
+        "Death",
+        "Headbutt",
+        "Idle",
+        "Idle_Eating",
+        "Jump_Loop",
+        "Jump_Start",
+        "Run",
+        "Walk"
+      ],
+      "clip_durations_s": {
+        "Death": 0.875,
+        "Headbutt": 0.625,
+        "Idle": 6.667,
+        "Idle_Eating": 3.333,
+        "Jump_Loop": 1,
+        "Jump_Start": 0.25,
+        "Run": 0.667,
+        "Walk": 1
+      },
+      "scale_to_target": 0.1875,
+      "size_m": [
+        0.246,
+        0.35,
+        0.405
+      ],
+      "tris": 2448,
+      "walk_clip": "AnimalArmature|AnimalArmature|AnimalArmature|Walk",
+      "foot_height_m": -0.01,
+      "vat_vertices": 2276,
+      "crowd_lod": {
+        "hero": "Actor (SkeletonUtils.clone + AnimationMixer.setTime)",
+        "far": "VAT crowd (templates/three-crowd VATCrowd) for all non-hero instances; hero <= ~6 Actor clones",
+        "suggested_max_instances": 3000
+      }
+    },
+    {
+      "id": "cat_toon_quaternius",
+      "kind": "character",
+      "species": "cat",
+      "title": "Cat (Quaternius, toon, 4 bones)",
+      "file": "assets/characters/cat_toon_quaternius.glb",
+      "url": "https://static.poly.pizza/7ccb71fe-dabb-4a6f-a98a-8992bb5e6bc7.glb",
+      "source_page": "https://poly.pizza/m/2f54vbV0In",
+      "author": "Quaternius",
+      "license": "CC0-1.0",
+      "attribution_required": false,
+      "sha256": "aa098d43c1006110d5a4fa3a6e6d4c843c8d8d90ffccc48f5bf32e3aadf7a3a9",
+      "bytes": 111948,
+      "forward": "+z",
+      "target": {
+        "height": 0.35
+      },
+      "animations": [
+        "Bite_Front",
+        "Dance",
+        "Death",
+        "HitRecieve",
+        "Idle",
+        "Jump",
+        "No",
+        "Walk",
+        "Yes"
+      ],
+      "clip_durations_s": {
+        "Bite_Front": 0.375,
+        "Dance": 0.667,
+        "Death": 0.333,
+        "HitRecieve": 0.292,
+        "Idle": 2,
+        "Jump": 0.417,
+        "No": 1,
+        "Walk": 0.417,
+        "Yes": 0.958
+      },
+      "scale_to_target": 0.1768,
+      "size_m": [
+        0.371,
+        0.35,
+        0.305
+      ],
+      "tris": 1772,
+      "walk_clip": "CharacterArmature|Walk",
+      "foot_height_m": -0.006,
+      "vat_vertices": 1270,
+      "crowd_lod": {
+        "hero": "Actor (SkeletonUtils.clone + AnimationMixer.setTime)",
+        "far": "VAT crowd (templates/three-crowd VATCrowd) for all non-hero instances; hero <= ~6 Actor clones",
+        "suggested_max_instances": 3000
+      }
+    },
+    {
+      "id": "dog_shiba_quaternius",
+      "kind": "character",
+      "species": "dog",
+      "title": "Shiba Inu (Quaternius, Animated Animal Pack)",
+      "file": "assets/characters/dog_shiba_quaternius.glb",
+      "url": "https://static.poly.pizza/ba6d0ee3-bcc0-4ef0-9d3c-a3e245b41c77.glb",
+      "source_page": "https://poly.pizza/m/y4wdQpg767",
+      "author": "Quaternius",
+      "license": "CC0-1.0",
+      "attribution_required": false,
+      "sha256": "9cbd4f1e12f85024126eab6a2c5706c099196df1a10db74e6c8b67bac3fff54a",
+      "bytes": 851196,
+      "forward": "+z",
+      "target": {
+        "height": 0.6
+      },
+      "animations": [
+        "Attack",
+        "Death",
+        "Eating",
+        "Gallop",
+        "Gallop_Jump",
+        "Idle",
+        "Idle_2",
+        "Idle_2_HeadLow",
+        "Idle_HitReact_Left",
+        "Idle_HitReact_Right",
+        "Jump_ToIdle",
+        "Walk"
+      ],
+      "clip_durations_s": {
+        "Attack": 1.167,
+        "Death": 1.042,
+        "Eating": 2.667,
+        "Gallop": 0.542,
+        "Gallop_Jump": 0.917,
+        "Idle_HitReact_Left": 0.667,
+        "Idle_HitReact_Right": 0.667,
+        "Jump_ToIdle": 1.333,
+        "Walk": 1.042,
+        "Idle_2_HeadLow": 4,
+        "Idle_2": 3.333,
+        "Idle": 3.333
+      },
+      "scale_to_target": 0.1942,
+      "size_m": [
+        0.208,
+        0.6,
+        0.809
+      ],
+      "tris": 1950,
+      "walk_clip": "Walk",
+      "foot_height_m": -0.018,
+      "vat_vertices": 3966,
+      "crowd_lod": {
+        "hero": "Actor (SkeletonUtils.clone + AnimationMixer.setTime)",
+        "far": "VAT crowd (templates/three-crowd VATCrowd) for all non-hero instances; hero <= ~6 Actor clones",
+        "suggested_max_instances": 3000
+      }
+    },
+    {
+      "id": "cat_shiba_kitbash",
+      "kind": "character",
+      "species": "cat",
+      "title": "Cat stand-in: Quaternius Shiba Inu rig + walk, head bones collapsed, procedural cat head attached in code",
+      "file": "assets/characters/dog_shiba_quaternius.glb",
+      "url": "https://static.poly.pizza/ba6d0ee3-bcc0-4ef0-9d3c-a3e245b41c77.glb",
+      "source_page": "https://poly.pizza/m/y4wdQpg767",
+      "author": "Quaternius",
+      "license": "CC0-1.0",
+      "attribution_required": false,
+      "sha256": "9cbd4f1e12f85024126eab6a2c5706c099196df1a10db74e6c8b67bac3fff54a",
+      "bytes": 851196,
+      "derived_from": "dog_shiba_quaternius",
+      "target": {
+        "height": 0.46
+      },
+      "head_scale": 0.8,
+      "bone_tweaks": {
+        "Head": {
+          "scale": [
+            0.001,
+            0.001,
+            0.001
+          ]
+        },
+        "Ear1.L": {
+          "scale": [
+            0.001,
+            0.001,
+            0.001
+          ]
+        },
+        "Ear1.R": {
+          "scale": [
+            0.001,
+            0.001,
+            0.001
+          ]
+        },
+        "Tail1": {
+          "rot": [
+            -0.35,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1.25,
+            1
+          ]
+        },
+        "Tail2": {
+          "rot": [
+            -0.45,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1.25,
+            1
+          ]
+        },
+        "Tail3": {
+          "rot": [
+            -0.4,
+            0,
+            0
+          ],
+          "scale": [
+            1,
+            1.2,
+            1
+          ]
+        }
+      },
+      "materials": {
+        "Main": {
+          "color": "#e0782c"
+        },
+        "Main_Light": {
+          "color": "#f6eadb"
+        }
+      },
+      "usage_note": "Needs the catHead() builder from jobs/20261109-agent5-style-test/project-v4/src/characters.js (attachToBone Neck3). No realistic rigged CC0 cat with a walk cycle was found (2026-11).",
+      "head_offset": [
+        0,
+        0.013,
+        0.039
+      ],
+      "forward": "+z",
+      "animations": [
+        "Attack",
+        "Death",
+        "Eating",
+        "Gallop",
+        "Gallop_Jump",
+        "Idle",
+        "Idle_2",
+        "Idle_2_HeadLow",
+        "Idle_HitReact_Left",
+        "Idle_HitReact_Right",
+        "Jump_ToIdle",
+        "Walk"
+      ],
+      "clip_durations_s": {
+        "Attack": 1.167,
+        "Death": 1.042,
+        "Eating": 2.667,
+        "Gallop": 0.542,
+        "Gallop_Jump": 0.917,
+        "Idle_HitReact_Left": 0.667,
+        "Idle_HitReact_Right": 0.667,
+        "Jump_ToIdle": 1.333,
+        "Walk": 1.042,
+        "Idle_2_HeadLow": 4,
+        "Idle_2": 3.333,
+        "Idle": 3.333
+      },
+      "scale_to_target": 0.1489,
+      "size_m": [
+        0.159,
+        0.46,
+        0.683
+      ],
+      "tris": 1950,
+      "walk_clip": "Walk",
+      "foot_height_m": -0.014,
+      "vat_vertices": 3966,
+      "crowd_lod": {
+        "hero": "Actor (SkeletonUtils.clone + AnimationMixer.setTime)",
+        "far": "VAT crowd (templates/three-crowd VATCrowd) for all non-hero instances; hero <= ~6 Actor clones",
+        "suggested_max_instances": 3000
+      }
+    },
+    {
+      "id": "human_quaternius",
+      "kind": "character",
+      "species": "human",
+      "title": "Animated Human (Quaternius, generic, 41 bones)",
+      "file": "assets/characters/human_quaternius.glb",
+      "url": "https://static.poly.pizza/170235d2-cdeb-4cb2-a82f-4828585138fe.glb",
+      "source_page": "https://poly.pizza/m/c3Ibh9I3udk",
+      "author": "Quaternius",
+      "license": "CC0-1.0",
+      "attribution_required": false,
+      "sha256": "ce4d543e82e455d5a1253798c9759f12b9eec74929ddbca464447eeaa3a42c5d",
+      "bytes": 698560,
+      "forward": "+z",
+      "target": {
+        "height": 1.75
+      },
+      "animations": [
+        "ArmatureAction.002",
+        "Death",
+        "Idle",
+        "Jump",
+        "Punch",
+        "Run",
+        "Walk",
+        "Working"
+      ],
+      "clip_durations_s": {
+        "ArmatureAction.002": 0.625,
+        "Death": 3.5,
+        "Idle": 10,
+        "Jump": 1,
+        "Punch": 1,
+        "Run": 0.625,
+        "Walk": 1,
+        "Working": 6.417
+      },
+      "scale_to_target": 0.3327,
+      "size_m": [
+        0.775,
+        1.75,
+        0.762
+      ],
+      "tris": 1578,
+      "walk_clip": "Human Armature|Walk",
+      "foot_height_m": -0.005,
+      "vat_vertices": 4733,
+      "crowd_lod": {
+        "hero": "Actor (SkeletonUtils.clone + AnimationMixer.setTime)",
+        "far": "VAT crowd (templates/three-crowd VATCrowd) for all non-hero instances; hero <= ~6 Actor clones",
+        "suggested_max_instances": 3000
+      }
+    },
+    {
+      "id": "adventurer_quaternius",
+      "kind": "character",
+      "species": "human",
+      "title": "Adventurer (Quaternius, generic, 62 bones)",
+      "file": "assets/characters/adventurer_quaternius.glb",
+      "url": "https://static.poly.pizza/bbe369ee-a686-42c7-adad-14356f5f2f15.glb",
+      "source_page": "https://poly.pizza/m/5EGWBMpuXq",
+      "author": "Quaternius",
+      "license": "CC0-1.0",
+      "attribution_required": false,
+      "sha256": "4a8639cd8eee9d8a150464edc25eb0536ced464790704a64e40c8620d99f66db",
+      "bytes": 1944116,
+      "forward": "+z",
+      "target": {
+        "height": 1.75
+      },
+      "animations": [
+        "Death",
+        "Gun_Shoot",
+        "HitRecieve",
+        "HitRecieve_2",
+        "Idle",
+        "Idle_Gun",
+        "Idle_Gun_Pointing",
+        "Idle_Gun_Shoot",
+        "Idle_Neutral",
+        "Idle_Sword",
+        "Interact",
+        "Kick_Left",
+        "Kick_Right",
+        "Punch_Left",
+        "Punch_Right",
+        "Roll",
+        "Run",
+        "Run_Back",
+        "Run_Left",
+        "Run_Right",
+        "Run_Shoot",
+        "Sword_Slash",
+        "Walk",
+        "Wave"
+      ],
+      "clip_durations_s": {
+        "Death": 1.042,
+        "Gun_Shoot": 0.583,
+        "HitRecieve": 0.542,
+        "HitRecieve_2": 0.542,
+        "Idle": 1.667,
+        "Idle_Gun": 1.667,
+        "Idle_Gun_Pointing": 1.667,
+        "Idle_Gun_Shoot": 0.667,
+        "Idle_Neutral": 1.667,
+        "Idle_Sword": 1.667,
+        "Interact": 1.25,
+        "Kick_Left": 0.917,
+        "Kick_Right": 0.917,
+        "Punch_Left": 0.833,
+        "Punch_Right": 0.833,
+        "Roll": 1.333,
+        "Run": 0.792,
+        "Run_Back": 0.833,
+        "Run_Left": 0.792,
+        "Run_Right": 0.792,
+        "Run_Shoot": 0.833,
+        "Sword_Slash": 1,
+        "Walk": 1.333,
+        "Wave": 1.667
+      },
+      "scale_to_target": 0.9579,
+      "size_m": [
+        0.579,
+        1.75,
+        0.69
+      ],
+      "tris": 10198,
+      "walk_clip": "CharacterArmature|Walk",
+      "foot_height_m": -0.014,
+      "vat_vertices": 20569,
+      "crowd_lod": {
+        "hero": "Actor (SkeletonUtils.clone + AnimationMixer.setTime)",
+        "far": "VAT crowd (templates/three-crowd VATCrowd) for all non-hero instances; hero <= ~6 Actor clones",
+        "suggested_max_instances": 600
+      }
+    },
+    {
+      "id": "truck_quaternius",
+      "kind": "vehicle",
+      "species": "truck",
+      "title": "Truck (Quaternius, Cars pack)",
+      "file": "assets/vehicles/truck_quaternius.glb",
+      "url": "https://static.poly.pizza/f4b28921-b45e-4653-b54c-c3976e4ea0fe.glb",
+      "source_page": "https://poly.pizza/m/cXw6oiFtZ8",
+      "author": "Quaternius",
+      "license": "CC0-1.0",
+      "attribution_required": false,
+      "sha256": "a5d107b5b06f8ca2d8d7e66ae6309f2e1a25cac577c5db8ebb661b3f0ca5ed8f",
+      "bytes": 326828,
+      "forward": "+z",
+      "target": {
+        "length": 7.0
+      },
+      "animations": [],
+      "clip_durations_s": {},
+      "scale_to_target": 1.332,
+      "size_m": [
+        3.609,
+        3.841,
+        7
+      ],
+      "tris": 7474,
+      "foot_height_m": 0.0,
+      "crowd_lod": {
+        "hero": "Actor (SkeletonUtils.clone + AnimationMixer.setTime)",
+        "far": "static mesh; for many copies use InstancedMesh per sub-mesh",
+        "suggested_max_instances": 50
+      }
+    },
+    {
+      "id": "schoolbus_polygoogle",
+      "kind": "vehicle",
+      "species": "bus",
+      "title": "Schoolbus (Poly by Google)",
+      "file": "assets/vehicles/schoolbus_polygoogle.glb",
+      "url": "https://static.poly.pizza/b79bb5fb-28e1-43cb-b821-75a7dcecd89c.glb",
+      "source_page": "https://poly.pizza/m/8xacyNqdJ3t",
+      "author": "Poly by Google",
+      "license": "CC-BY-3.0",
+      "attribution_required": true,
+      "attribution": "Schoolbus by Poly by Google [CC-BY 3.0] via Poly Pizza (https://poly.pizza/m/8xacyNqdJ3t)",
+      "sha256": "01ea32f7cb042e1531f905173c4920eba007f559177bb0734c6c155e6ccd688d",
+      "bytes": 236852,
+      "forward": "+z",
+      "target": {
+        "length": 11.0
+      },
+      "animations": [],
+      "clip_durations_s": {},
+      "scale_to_target": 0.1561,
+      "size_m": [
+        4.812,
+        5.132,
+        11
+      ],
+      "tris": 5425,
+      "foot_height_m": 0.0,
+      "crowd_lod": {
+        "hero": "Actor (SkeletonUtils.clone + AnimationMixer.setTime)",
+        "far": "static mesh; for many copies use InstancedMesh per sub-mesh",
+        "suggested_max_instances": 50
+      }
+    },
+    {
+      "id": "sky_kloofendal_puresky_1k",
+      "kind": "hdri",
+      "species": "sky",
+      "title": "Kloofendal 48d Partly Cloudy (Pure Sky), 1k HDR",
+      "file": "assets/env/kloofendal_48d_partly_cloudy_puresky_1k.hdr",
+      "url": "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/kloofendal_48d_partly_cloudy_puresky_1k.hdr",
+      "source_page": "https://polyhaven.com/a/kloofendal_48d_partly_cloudy_puresky",
+      "author": "Greg Zaal (original), Jarod Guest (sky edit) / Poly Haven",
+      "license": "CC0-1.0",
+      "attribution_required": false,
+      "sha256": "fd94c84997b8a3c353b62c2125a9b44e19509956986a126e472684432a02d798",
+      "bytes": 1435119,
+      "usage": "scene.environment via HDRLoader + PMREM (IBL); 1k is enough for lighting",
+      "resolution": [
+        1024,
+        512
+      ]
+    }
+  ]
+}

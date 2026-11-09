@@ -1,0 +1,11 @@
+# Optional local measurement engines. Models must be bundled or cached.
+rapidocr-onnxruntime>=1.3,<2
+librosa>=0.10,<0.12
+scikit-image>=0.22,<0.27
+pytesseract>=0.3.10,<0.4
+# Optional perceptual models are installed separately with compatible torch builds:
+# lpips>=0.1.4,<0.2
+# open-clip-torch>=2.24,<4
+# paddleocr>=2.7,<3  (requires local det/rec model directories)
+# Turkish OCR: put latin_PP-OCRv5_rec_mobile.onnx (+ ppocrv5_latin_dict.txt) in models/ocr/ (git-ignored);
+# source: https://www.modelscope.cn/models/RapidAI/RapidOCR (onnx/PP-OCRv5/rec). Without it OCR falls back to the bundled ch/en model.

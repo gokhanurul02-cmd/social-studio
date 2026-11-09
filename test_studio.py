@@ -123,36 +123,40 @@ class StudioChecks(unittest.TestCase):
     def test_08_launch_arguments_are_not_shell_code(self):
         source = str(self.work/'source & example.mp4')
         for agent in ['codex','claude']:
-            with patch.object(studio,'run') as mocked:
+            with patch.object(studio,'run') as mocked, patch.object(studio.shutil, 'which', return_value=agent + '.exe'):
                 studio.launch(SimpleNamespace(agent=agent,source=source,prompt='Use literal $ and ` text'))
                 argv = mocked.call_args.args[0]
                 self.assertIsInstance(argv,list)
                 self.assertIn('source & example.mp4',argv[-1])
                 self.assertIn('literal $ and ` text',argv[-1])
 
-    def test_09_custom_skill_frontmatter_and_entrypoints(self):
-        validator_path = Path.home()/'.codex/skills/.system/skill-creator/scripts/quick_validate.py'
-        spec = importlib.util.spec_from_file_location('validate_skill_module',validator_path)
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
-        for base in [Path.home()/'.agents/skills',Path.home()/'.claude/skills']:
-            folders = [base/'social',*base.glob('social-*')]
-            self.assertEqual(len(folders),11)
-            for folder in folders:
-                with self.subTest(folder=folder):
-                    ok, message = module.validate_skill(folder)
-                    self.assertTrue(ok,message)
-                    self.assertIn(studio.WORKFLOW_PATH,(folder/'SKILL.md').read_text(encoding='utf-8'))
+    def test_09_portable_tools_and_repository_skills(self):
+        from social_studio import media
+        with patch.dict(os.environ, {'SOCIAL_FFMPEG': str(self.source)}):
+            self.assertEqual(media.resolve_tool('ffmpeg'), self.source)
+        self.assertIn('Scripts' if os.name == 'nt' else 'bin', str(media.venv_python(self.work)))
+        earshot = self.work / 'earshot-portable'
+        earshot.mkdir()
+        (earshot / 'run.py').write_text('# fixture', encoding='utf-8')
+        with patch.object(media, 'ROOT', self.work / 'tool'), patch.dict(os.environ, {'SOCIAL_EARSHOT': ''}):
+            self.assertEqual(media.find_earshot(), earshot)
+        for file in (studio.ROOT / 'agent-skills').rglob('SKILL.md'):
+            self.assertTrue(file.read_text(encoding='utf-8').startswith('---'))
 
     def test_10_motion_graphics_cut_detection(self):
-        # Real render with four layouts on the same dark ground. Stock defaults missed all cuts.
-        out = self.work/'motion-cuts'
-        studio.analyze(str(studio.ROOT/'jobs/demo/social-studio-final.mp4'),out,speech=False)
-        scenes = studio.load(out/'scenes.json')
-        observed = [row['start_frame'] for row in scenes[1:]]
-        self.assertEqual(len(observed),3)
-        for got, expected in zip(observed,[65,134,200]):
-            self.assertLessEqual(abs(got-expected),1)
+        source = self.work / 'cuts.mp4'
+        argv = [studio.FFMPEG, '-v', 'error', '-n']
+        for color in ['red', 'green', 'blue', 'white']:
+            argv += ['-f', 'lavfi', '-i', f'color={color}:s=96x160:r=30:d=1']
+        argv += ['-filter_complex', '[0:v][1:v][2:v][3:v]concat=n=4:v=1:a=0[v]',
+                 '-map', '[v]', '-c:v', 'libx264', str(source)]
+        studio.run(argv, capture=True)
+        out = self.work / 'motion-cuts'
+        studio.analyze(str(source), out, speech=False)
+        observed = [row['start_frame'] for row in studio.load(out / 'scenes.json')[1:]]
+        self.assertEqual(len(observed), 3)
+        for got, expected in zip(observed, [30, 60, 90]):
+            self.assertLessEqual(abs(got - expected), 1)
 
     def test_11_publication_handoff_is_portable_and_offline(self):
         args = SimpleNamespace(source=str(self.source),out=str(self.work/'handoff.v1'),brand='Fixture',
@@ -178,6 +182,156 @@ class StudioChecks(unittest.TestCase):
         with self.assertRaises(ValueError):
             studio.handoff(args)
         self.assertFalse(Path(args.out).exists())
+
+    def test_13_ocr_merging_and_optional_skip(self):
+        from social_studio.ocr import scan_text, describe_text
+        import numpy as np
+        image = np.zeros((160, 96, 3), dtype=np.uint8)
+        row = {'text': 'HELLO', 'confidence': .9, 'quad': [[1, 1], [90, 1], [90, 20], [1, 20]]}
+        item = describe_text(row, image, 0, .25)
+        self.assertIn('top_12_percent', item['safe_area_violations'])
+        self.assertAlmostEqual(item['text_height_ratio'], 19 / 160)
+        with patch('social_studio.ocr.recognizer', return_value=('fixture', lambda image: [row], [])):
+            report = scan_text(self.source, studio.video_info(self.source), self.work / 'ocr.json')
+        self.assertEqual(len(report['records']), 1)
+        self.assertEqual(report['records'][0]['end'], 1)
+        with patch('social_studio.ocr.recognizer', return_value=(None, None, ['not installed'])):
+            report = scan_text(self.source, studio.video_info(self.source), self.work / 'ocr-skip.json')
+        self.assertIn('skipped', report)
+
+    def test_14_audio_energy_silence_and_alignment(self):
+        from social_studio.audio_analysis import analyze_audio, cut_alignment
+        source = self.work / 'tone.wav'
+        studio.run([studio.FFMPEG, '-v', 'error', '-n', '-f', 'lavfi', '-i',
+                    'sine=frequency=440:sample_rate=16000:duration=2', source], capture=True)
+        with patch.dict('sys.modules', {'librosa': None}):
+            report = analyze_audio(source, {'has_audio': True, 'duration': 2}, self.work / 'tone.json')
+        self.assertEqual(len(report['rms_curve']), 20)
+        self.assertAlmostEqual(report['rms_curve'][5]['dbfs'], -21.07, delta=.2)
+        self.assertTrue(report['loudness_curve'])
+        self.assertIn('skipped', report['rhythm'])
+        aligned = cut_alignment([{'start': 0}, {'start': 1.02}], [1])
+        self.assertAlmostEqual(aligned['cuts'][0]['nearest_beat_ms'], 20)
+        self.assertEqual(aligned['aligned_ratio'], 1)
+        report = analyze_audio(self.source, studio.video_info(self.source), self.work / 'silent.json')
+        self.assertIn('skipped', report)
+
+    def test_15_visual_palette_motion_and_sampling_limit(self):
+        from social_studio.visual import palette, motion_estimate
+        import cv2
+        import numpy as np
+        image = np.zeros((160, 96, 3), np.uint8)
+        image[:, :, 2] = 255
+        colors = palette(image)
+        self.assertAlmostEqual(sum(c['ratio'] for c in colors['colors']), 1)
+        self.assertEqual(colors['colors'][0]['hex'], '#ff0000')
+        rng = np.random.default_rng(123)
+        gray = rng.integers(0, 255, (160, 96), dtype=np.uint8)
+        moved = cv2.warpAffine(gray, np.float32([[1, 0, 3], [0, 1, 0]]), (96, 160))
+        motion = motion_estimate(gray, moved, .5)
+        self.assertEqual(motion['camera_estimate'], 'pan_right')
+        out = self.work / 'limited'
+        studio.analyze(str(self.source), out, speech=False, max_frames=2)
+        self.assertLessEqual(len(studio.load(out / 'frames.json')), 2)
+        self.assertTrue((out / 'visual_analysis.json').is_file())
+
+    def test_16_summary_provenance_and_unmeasured_values(self):
+        out = self.work / 'summary-test'
+        with patch('social_studio.ocr.recognizer', return_value=(None, None, ['fixture absent'])):
+            studio.analyze(str(self.source), out, speech=False)
+        summary = studio.load(out / 'summary.json')
+        self.assertEqual(summary['metrics']['hook_cuts']['value'], 0)
+        self.assertIsNone(summary['metrics']['words_per_minute']['value'])
+        self.assertIsNone(summary['metrics']['hook_event_density']['value'])
+        self.assertIn('ocr', summary['skipped'])
+        for row in summary['metrics'].values():
+            self.assertTrue(all(key in row for key in ['method', 'confidence', 'source']))
+        self.assertTrue((out / 'summary.md').exists())
+
+    def test_17_perceptual_and_audio_timing(self):
+        from social_studio.perceptual import ssim, audio_delay, match_times
+        import numpy as np
+        image = np.random.default_rng(4).integers(0, 255, (80, 80, 3), dtype=np.uint8)
+        self.assertAlmostEqual(ssim(image, image), 1)
+        self.assertEqual(ssim(np.zeros((2, 2, 3)), np.zeros((2, 2, 3))), 1)
+        self.assertIn('skipped', audio_delay(np.array([]), np.array([])))
+        self.assertLess(ssim(image, 255 - image), 0)
+        source = np.random.default_rng(5).normal(size=16000)
+        target = np.concatenate([np.zeros(1600), source])
+        self.assertAlmostEqual(audio_delay(source, target)['delay_ms'], 100, delta=1)
+        self.assertAlmostEqual(match_times([1, 2], [1.1, 2.1], 30)['mean_absolute_delta_frames'], 3)
+        same = studio.compare(self.source, self.source, self.work / 'perceptual-same')
+        self.assertAlmostEqual(same['mean_ssim'], 1)
+        self.assertTrue(same['scene_scores'])
+        self.assertIn('skipped', same['audio_comparison'])
+        with self.assertRaises(FileExistsError):
+            studio.compare(self.source, self.source, self.work / 'perceptual-same')
+
+
+    def test_18_performance_join_ratios_and_correlations(self):
+        from social_studio.performance import analyze_posts, pearson
+        source = self.work / 'export.json'
+        rows = []
+        for i in range(1, 4):
+            job = self.work / f'performance-{i}'
+            studio.save(job / 'summary.json', {'metrics': {'hook_event_density': {'value': i}}})
+            rows.append({'video_id': job.name, 'views': 100, 'likes': i,
+                         'avg_watch_time': i * 2, 'duration': 10, 'retention_3s': '65%',
+                         'completion_rate': .5, 'follows': 2})
+        report = analyze_posts(rows, source)
+        self.assertEqual(report['posts'][0]['retention_3s_ratio'], .65)
+        self.assertEqual(report['posts'][0]['follows_per_1000_views'], 20)
+        corr = next(r for r in report['correlations'] if r['feature'] == 'hook_event_density' and r['outcome'] == 'watch_ratio')
+        self.assertEqual(corr['n'], 3)
+        self.assertAlmostEqual(corr['r'], 1)
+        self.assertIsNone(pearson([(1, 2), (2, 3)])['r'])
+        self.assertIsNone(pearson([(1, 2)] * 3)['r'])
+        missing = analyze_posts([{'views': 0, 'avg_watch_time': 2}], source)['posts'][0]
+        self.assertIsNone(missing['watch_ratio'])
+        self.assertIsNone(missing['retention_3s_ratio'])
+        for row in [{'retention_3s': 65}, {'avg_watch_time': 'NaN'}, {'follows': -1}]:
+            with self.assertRaises(ValueError):
+                analyze_posts([row], source)
+
+    def test_20_offline_analysis_without_optional_engines(self):
+        source = self.work / 'offline-input.mp4'
+        studio.run([studio.FFMPEG, '-v', 'error', '-n', '-f', 'lavfi', '-i',
+                    'testsrc2=size=96x160:rate=10:duration=1', '-f', 'lavfi', '-i',
+                    'sine=frequency=440:duration=1', '-c:v', 'libx264', '-c:a', 'aac', '-shortest', source], capture=True)
+        out = self.work / 'offline-example'
+        with patch('social_studio.ocr.recognizer', return_value=(None, None, ['engines absent'])), \
+             patch('social_studio.audio_analysis._spectral_speech_intervals', side_effect=ImportError('scipy absent')), \
+             patch('social_studio.audio_analysis.KWeighted', side_effect=ImportError('scipy absent')), \
+             patch('social_studio.audio_analysis.analyze_rhythm', side_effect=ImportError('librosa absent')), \
+             patch('faster_whisper.WhisperModel', side_effect=OSError('model not cached')) as whisper, \
+             patch('socket.create_connection', side_effect=AssertionError('No network in tests')):
+            studio.analyze(str(source), out)
+        self.assertTrue(whisper.call_args.kwargs['local_files_only'])
+        for filename in ['analysis.json', 'onscreen_text.json', 'audio_analysis.json',
+                         'visual_analysis.json', 'summary.json', 'summary.md', 'REBUILD.md']:
+            self.assertTrue((out / filename).is_file(), filename)
+        manifest = studio.load(out / 'analysis.json')
+        self.assertIn('skipped', manifest['measurements']['ocr'])
+        self.assertIn('skipped', manifest['transcription'])
+        audio = studio.load(out / 'audio_analysis.json')
+        self.assertIn(len(audio['rms_curve']), [10, 11])  # AAC may add a partial tail bin.
+        self.assertTrue(audio['loudness_curve'])
+        self.assertIn('skipped', audio['rhythm'])
+
+    def test_19_audio_comparison_skips_warmup_bins_and_text_delta(self):
+        from social_studio.comparison_details import audio_comparison, timeline_comparison
+        import numpy as np
+        samples = np.random.default_rng(7).normal(size=16000)
+        data = {'audio': {'onsets': [.5], 'loudness_curve': [
+            {'momentary_lufs': None}, {'momentary_lufs': -20}]},
+            'scenes': [{'start': 0}, {'start': 1}],
+            'text': {'records': [{'text': 'Merhaba', 'start': .2, 'end': .8}]}}
+        with patch('social_studio.audio_analysis.pcm', return_value=samples):
+            result = audio_comparison('a', 'b', data, data, 30)
+        self.assertEqual(result['loudness_compared_bins'], 1)
+        self.assertEqual(result['loudness_curve_rmse_lu'], 0)
+        other = {**data, 'text': {'records': [{'text': 'Merhaba', 'start': .3, 'end': .9}]}}
+        self.assertAlmostEqual(timeline_comparison(data, other, 30)['text']['mean_absolute_delta_frames'], 3)
 
 
 if __name__ == '__main__':

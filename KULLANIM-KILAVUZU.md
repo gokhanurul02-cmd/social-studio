@@ -434,3 +434,48 @@ URL ve SHA-256 kayıtları `bin/` ve `runtimes/node22/` içinde. `social doctor`
 - [ElevenLabs Python SDK](https://github.com/elevenlabs/elevenlabs-python)
 - [Codex becerileri](https://learn.chatgpt.com/docs/build-skills)
 - [Claude Code becerileri](https://code.claude.com/docs/en/skills)
+
+
+## Yeni analiz komutları ve raporları
+
+Windows: `social analyze video.mp4 --out jobs/yeni-analiz --max-frames 120`.
+Linux/macOS: sanal ortam Python'u ile `python studio.py analyze video.mp4 --out jobs/yeni-analiz`.
+`--ocr-fps 4` ve `--ocr-threshold` ekran metni taramasını yönetir; kontak sayfası en çok 60 hücredir.
+Her çıktı için yeni, boş klasör kullanın; mevcut işler korunur.
+
+Önce `summary.md`/`summary.json`, sonra ilgili ölçüm dosyasını okuyun:
+- `onscreen_text.json`: birleştirilmiş metinler, normalize kutular, güvenli alan, yaklaşık yazı boyutu/renk.
+- `audio_analysis.json`: 100 ms RMS ve momentary LUFS, sessizlik, BPM/beat/onset ve kesim hizası.
+- `visual_analysis.json`: kesim sıklığı, optik akış/kamera tahmini, sahne paletleri ve varlık tespiti.
+- `summary.json`: hook/konuşma/metin ölçümleri; her değerde kaynak, yöntem ve güven.
+- `TIMELINE.md`/`timeline.json` mevcutsa ayrıntılı olay sırası; `REBUILD.md` üretim için başlangıçtır.
+
+Yerel dosya analizinde varsayılan model indirmesi yoktur. Whisper önbellekte yoksa konuşma adımı
+atlanır ve sebebi yazılır. İndirmeyi açıkça etkinleştirmek için analiz/transcribe komutuna
+`--allow-model-download` ekleyin; ağırlıklar Hugging Face önbelleğine kaydedilir. URL girdisi ise
+videoyu indirmek için ağ kullanır. Seslendirme gibi çevrimiçi araçlar ayrı iş akışlarıdır.
+
+Çekirdek: `pip install -r requirements.txt`. İsteğe bağlı: `pip install -r requirements-analysis.txt`.
+OCR: yerel ağırlıklı RapidOCR/PaddleOCR veya kurulu Tesseract ve `tur`/`eng` dil verileri.
+Motorun mevcut dillerini kontrol edin; İngilizce model Türkçe doğruluğu garantilemez.
+Librosa yoksa ffmpeg loudness ve kaba RMS-onset yedeği kullanılır, BPM uydurulmaz.
+Yüz/kişi detektörü olmayan OpenCV dağıtımlarında o ölçüm atlanır. `social doctor` paketleri listeler.
+`SOCIAL_FFMPEG`/`SOCIAL_FFPROBE` > `bin/` > Earshot > PATH; isteğe bağlı `SOCIAL_EARSHOT` ve `SOCIAL_FONT`.
+
+`social compare kaynak.mp4 sonuc.mp4 --out jobs/yeni-karsilastirma` MAE/PSNR yanında SSIM,
+sahne bazlı ölçümler, ses gecikmesi/korelasyonu ve kesim/metin zaman sapması üretir.
+Var olan analizleri yeniden kullanmak için `--source-analysis jobs/kaynak-analiz`
+ve `--render-analysis jobs/sonuc-analiz` ekleyin. Video özellikleri doğrulanır; aynı boyuttaki farklı
+videoları karıştırmamak için doğru klasörü seçin. HTML en düşük SSIM anlarını gösterir.
+LPIPS için torch+lpips ve önceden önbelleğe alınmış AlexNet ağırlıkları; CLIP için torch+open_clip
+ve `SOCIAL_CLIP_WEIGHTS` ile yerel ViT-B-32 ağırlık dosyası gerekir. Karşılaştırma ağırlık indirmez.
+Hiçbiri benzerlik yüzdesi değildir. Piksel/algı ölçümleri estetik kaliteyi veya yeniden üretilebilirliği kanıtlamaz.
+
+Performans girdisine `avg_watch_time,duration,retention_3s,completion_rate,follows,video_id,job`
+alanları eklenebilir. Süreler saniye; retention/completion 0–1 oranı veya `65%` biçimindedir.
+`watch_ratio=avg_watch_time/duration`; döngülü izlenmede 1'i aşabilir. Tutma oranı ortalama izlenmeden
+hesaplanamaz, dışa aktarımda bulunmalıdır. `job` önceliklidir; CSV/JSON dosyasına göre klasör veya
+`jobs/<video_id>/summary.json` açık adla eşleşir. Bulanık isim eşleştirmesi yapılmaz.
+`social analytics performans.csv --out jobs/performans-v2.json` ölçümleri aynı satıra ekler;
+Pearson raporu her çiftin `n` sayısını verir. Üçten az çift veya sabit değişken için korelasyon null'dır.
+Korelasyon nedensellik kanıtlamaz; dil/kanal/konu karışımı ve küçük örneklem yanıltabilir.

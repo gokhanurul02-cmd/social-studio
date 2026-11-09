@@ -1,15 +1,13 @@
 ---
 name: social-create
-description: "Create a finished social video from a brief, brand or script using local code tools."
+description: "Create a finished social video from a brief, brand or script using local code tools. For a video in the style of an analyzed reference, redirects to ayni-tarzda-uret."
 ---
 
-# social-create
+# social-create → ayni-tarzda-uret
 
-This is the local social-studio integration.
+Analiz edilmiş bir referansın tarzında yeni/özgün video için `agent-skills/codex/ayni-tarzda-uret/SKILL.md`
+adımlarını uygula (stil kaynağı → senaryo + altyazı grupları → proje iskeleti → Edge TTS kelime sınırları →
+540p önizleme döngüsü → render → `social analyze` + `social stylecheck` → en az 2 iterasyon → REVIEW.md).
 
-Read `C:/Users/birlik grup/Documents/Codex/tools/social-studio/WORKFLOWS.md` and only its relevant workflow sections.
-Tool entrypoint: `C:/Users/birlik grup/Documents/Codex/tools/social-studio/social.cmd`. Quote its full path in PowerShell.
-
-Complete Create a new video. Use the appropriate approved brand skill where applicable. Render and verify the finished MP4 and keep editable sources.
-
-Use the actual user request and attached files as inputs. Preserve approved brand assets and create versioned job outputs. Do not claim account connection, a successful render, or reference fidelity without evidence.
+Referanssız, yalnızca marka/brief ile üretimde `C:/Users/birlik grup/Documents/Codex/tools/social-studio/WORKFLOWS.md`
+"Create a new video" bölümünü ve onaylı marka becerilerini kullan. Düzenlenebilir kaynakları ve sürümlü çıktıları koru.

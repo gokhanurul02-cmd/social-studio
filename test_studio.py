@@ -248,6 +248,8 @@ class StudioChecks(unittest.TestCase):
         import numpy as np
         image = np.random.default_rng(4).integers(0, 255, (80, 80, 3), dtype=np.uint8)
         self.assertAlmostEqual(ssim(image, image), 1)
+        self.assertEqual(ssim(np.zeros((2, 2, 3)), np.zeros((2, 2, 3))), 1)
+        self.assertIn('skipped', audio_delay(np.array([]), np.array([])))
         self.assertLess(ssim(image, 255 - image), 0)
         source = np.random.default_rng(5).normal(size=16000)
         target = np.concatenate([np.zeros(1600), source])

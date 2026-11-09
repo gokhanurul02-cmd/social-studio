@@ -13,7 +13,7 @@ def ssim(a, b):
     vy = cv2.GaussianBlur(y * y, (11, 11), 1.5) - my * my
     cov = cv2.GaussianBlur(x * y, (11, 11), 1.5) - mx * my
     score = ((2 * mx * my + 6.5025) * (2 * cov + 58.5225)) / ((mx * mx + my * my + 6.5025) * (vx + vy + 58.5225))
-    return float(np.mean(score[5:-5, 5:-5]))
+    return float(np.mean(score[5:-5, 5:-5] if min(score.shape[:2]) > 10 else score))
 
 
 class OptionalMetrics:
@@ -24,7 +24,11 @@ class OptionalMetrics:
         if importlib.util.find_spec('torch') is None:
             self.status = {name: {'skipped': 'torch unavailable'} for name in ['lpips', 'clip']}
             return
-        import torch
+        try:
+            import torch
+        except Exception as exc:
+            self.status = {name: {'skipped': f'torch failed to load: {exc}'} for name in ['lpips', 'clip']}
+            return
         self.torch = torch
         if importlib.util.find_spec('lpips') is not None:
             backbone = Path(torch.hub.get_dir()) / 'checkpoints/alexnet-owt-7be5be79.pth'
@@ -55,6 +59,16 @@ class OptionalMetrics:
             self.status['clip'] = {'skipped': 'open_clip or local SOCIAL_CLIP_WEIGHTS unavailable'}
 
     def score(self, a, b):
+        try:
+            return self._score(a, b)
+        except Exception as exc:
+            for name in ['lpips', 'clip']:
+                if 'skipped' not in self.status.get(name, {}):
+                    self.status[name] = {'skipped': f'Optional model inference failed: {exc}'}
+            self.lpips_model = self.clip_model = None
+            return {}
+
+    def _score(self, a, b):
         from PIL import Image
         result = {}
         if self.lpips_model is None and self.clip_model is None:
@@ -74,6 +88,8 @@ class OptionalMetrics:
 
 def audio_delay(source, rendered, sample_rate=16000):
     import numpy as np
+    if not len(source) or not len(rendered):
+        return {'skipped': 'Empty audio cannot define a delay'}
     a, b = source.astype(float), rendered.astype(float)
     a, b = a - a.mean(), b - b.mean()
     norm = float(np.linalg.norm(a) * np.linalg.norm(b))

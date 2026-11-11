@@ -1,0 +1,7 @@
+{
+  "words": "ses/kullanici-v2/kelimeler.json",
+  "audio": "ses/kullanici-v2/ses.wav",
+  "mix": "ses/kullanici-v2/miks.wav",
+  "source": "ses/kullanici-v2/kayit.mp3 (kullanicinin kendi kaydi, Orcun Togan; METIN-v2.md, onizleme-v1 sahneleri)",
+  "note": "audio = normalize yalin anlati; mix = anlati + SFX (scripts/sfx_miks_v2metin.py) -> render/video.cjs muxlar"
+}

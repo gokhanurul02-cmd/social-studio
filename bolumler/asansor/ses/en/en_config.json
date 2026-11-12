@@ -1,0 +1,23 @@
+{
+  "project_src": "project",
+  "project_en": "project-en",
+  "tr_words": "ses/kullanici/kelimeler.json",
+  "sentences": [
+    "You're on the twentieth floor when the elevator cable suddenly snaps.",
+    "As the elevator drops down the shaft, you feel your stomach jump into your throat.",
+    "You pull out your phone and text your mom goodbye,",
+    "and right before you hit the ground, you bend your knees to jump.",
+    "But after just a few feet, the elevator stops on its own,",
+    "and you jump for nothing and smack your head on the ceiling.",
+    "That's because every elevator has a brake underneath that clamps onto the rails if it goes too fast, and that brake would always stop you."
+  ],
+  "anchors": {
+    "1,4": 6, "1,8": 11,
+    "2,4": 10,
+    "3,3": 7,
+    "4,5": 8, "4,8": 11,
+    "5,7": 9,
+    "6,6": 3, "6,7": 6, "6,8": 7,
+    "7,6": 9, "7,7": 10, "7,8": 11, "7,12": 19, "7,18": 24
+  }
+}

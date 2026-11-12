@@ -1,0 +1,8 @@
+{
+  "words": "ses/en/kelimeler.trmap.json",
+  "words_en": "ses/en/kelimeler.json",
+  "audio": "ses/en/ses.wav",
+  "mix": "ses/en/miks.wav",
+  "source": "ses/en/kayit.mp3 (kullanicinin kendi Ingilizce kaydi, Orcun Togan)",
+  "note": "words = Turkce c/w indeksli harita (an(c,w) Ingilizce karsilik kelimeye kilitli); words_en = Ingilizce kelimeler (altyazi)"
+}

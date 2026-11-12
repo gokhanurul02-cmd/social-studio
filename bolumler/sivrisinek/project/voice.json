@@ -1,0 +1,7 @@
+{
+  "words": "ses/kullanici/kelimeler.json",
+  "audio": "ses/kullanici/ses.wav",
+  "mix": "ses/kullanici/miks.wav",
+  "source": "ses/kullanici-orcun.mp3 (kullanicinin kendi ElevenLabs kaydi, Orcun Togan; METIN.md v3)",
+  "note": "audio = normalize edilmis yalin anlati (Whisper hizalama icin); mix = anlati + SFX (scripts/sfx_miks.py) -> video.cjs muxlar"
+}

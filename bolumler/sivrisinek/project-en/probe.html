@@ -1,0 +1,16 @@
+<!doctype html><html><head><meta charset="utf-8">
+<script type="importmap">{"imports":{"three":"/three/build/three.module.js","three/addons/":"/three/examples/jsm/"}}</script></head><body>
+<script type="module">
+import * as THREE from 'three';
+import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
+const g = await new GLTFLoader().loadAsync('./assets/Xbot.glb');
+const out = {};
+g.scene.updateMatrixWorld(true);
+g.scene.traverse(o=>{ if(o.isSkinnedMesh){ const p=o.geometry.attributes.position; o.geometry.computeBoundingBox();
+ out[o.name]={verts:p.count, tris:(o.geometry.index?o.geometry.index.count/3:p.count/3), bbox:o.geometry.boundingBox, bindMatrix:o.bindMatrix.elements.map(x=>+x.toFixed(3)), world:o.matrixWorld.elements.map(x=>+x.toFixed(3)), mat:o.material.name, attrs:Object.keys(o.geometry.attributes)}; }});
+const bones={}; g.scene.traverse(o=>{ if(o.isBone && /Hips|Head$|LeftArm$|LeftForeArm|LeftHand$|LeftUpLeg|LeftLeg$|LeftFoot$|Spine2|Neck|HeadTop/.test(o.name)){ const v=new THREE.Vector3(); o.getWorldPosition(v); bones[o.name]=[+v.x.toFixed(3),+v.y.toFixed(3),+v.z.toFixed(3)]; }});
+out.bones=bones; out.anims=g.animations.map(a=>[a.name,a.duration,a.tracks.length]);
+const root=[]; g.scene.traverse(o=>root.push(o.name+':'+o.type+':'+o.scale.x.toFixed(3)));
+out.tree=root.slice(0,8);
+window.INFO=out; window.READY=true;
+</script></body></html>

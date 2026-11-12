@@ -1,0 +1,12 @@
+{"display": {"100": "hundred", "10 feet": "ten feet", "3 chambers": "three chambers"},
+ "lines": [
+  [[1,1,"If a frog's"], [1,4,"heart was"], [1,6,"removed and put"], [1,9,"into your chest,"]],
+  [[2,1,"this pea-sized"], [2,3,"heart couldn't"], [2,5,"pump enough"], [2,7,"blood through"], [2,9,"your body,"], [2,11,"and your face"], [2,14,"would turn"], [2,16,"purple."]],
+  [[3,1,"So they'd"], [3,3,"stuff"], [3,4,"a 100"], [3,6,"frog hearts"], [3,8,"into your chest."]],
+  [[4,1,"With a 100"], [4,4,"hearts pumping"], [4,6,"at once,"], [4,8,"you'd leave"], [4,10,"everyone behind"], [4,12,"on the track"]],
+  [[5,1,"and leap over"], [5,4,"hurdles"], [5,5,"10 feet high,"], [5,8,"just like"], [5,10,"a frog."]],
+  [[6,1,"But when"], [6,3,"winter came,"], [6,5,"the race"], [6,7,"would be over."]],
+  [[7,1,"That's because"], [7,3,"a frog's heart"], [7,6,"has only"], [7,8,"3 chambers,"], [7,10,"so clean"], [7,12,"and dirty"], [7,14,"blood mix"], [7,16,"together."]],
+  [[8,1,"And some frogs"], [8,4,"freeze solid"], [8,6,"in winter;"], [8,8,"their hearts stop,"], [8,11,"then start"], [8,13,"beating again"], [8,15,"in spring."]],
+  [[9,1,"So you'd spend"], [9,4,"the winter"], [9,6,"in the fridge,"], [9,9,"and in spring,"], [9,12,"pick the race"], [9,15,"up right"], [9,17,"where you"], [9,19,"left off."]]
+ ]}

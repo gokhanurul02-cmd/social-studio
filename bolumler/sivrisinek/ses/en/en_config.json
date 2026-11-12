@@ -1,0 +1,28 @@
+{
+  "project_src": "project-v2metin",
+  "project_en": "project-en",
+  "tr_words": "ses/kullanici-v2/kelimeler.json",
+  "sentences": [
+    "If a mosquito grew to your size overnight,",
+    "you'd wake up to a two-hundred-pound bug staring at you from the end of your bed.",
+    "You'd pull the blanket over your head, but it would stab its needle right through the blanket into your arm",
+    "and suck out all your blood in one go, like juice through a straw.",
+    "As you shrivel up like a dry leaf, its belly swells up like a balloon.",
+    "Then it tries to leave through the door.",
+    "On its very first step, its legs snap like spaghetti, and it collapses, gasping for air.",
+    "That's because mosquitoes don't have lungs; their tiny air tubes can't get enough oxygen to a body that big.",
+    "And when it grows three hundred times taller, its weight goes up millions of times, but its legs don't get nearly that strong.",
+    "So it could drain you dry, but it would never even make it to the door."
+  ],
+  "anchors": {
+    "1,5": 4, "1,8": 8,
+    "2,2": 2, "2,4": 6, "2,8": 8,
+    "3,3": 6, "3,4": 8, "3,7": 14, "3,10": 20,
+    "4,4": 4, "4,9": 10, "4,11": 14,
+    "5,6": 8, "5,7": 9, "5,11": 15,
+    "7,3": 6, "7,6": 8, "7,7": 11,
+    "8,5": 7, "8,10": 11, "8,14": 14,
+    "9,5": 8, "9,6": 9, "9,7": 13, "9,9": 15, "9,10": 16, "9,12": 19, "9,14": 23,
+    "10,4": 7, "10,6": 10
+  }
+}
